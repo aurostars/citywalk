@@ -1,8 +1,8 @@
 import { Moon, Sun } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
+import { useAppState } from "../app/AppState";
 
 type ResolvedTheme = "dark" | "light";
-type ThemePreference = ResolvedTheme | "system";
 
 function getSystemTheme(): ResolvedTheme {
   if (
@@ -17,7 +17,10 @@ function getSystemTheme(): ResolvedTheme {
 }
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<ThemePreference>("system");
+  const {
+    state: { theme },
+    setTheme,
+  } = useAppState();
   const [systemTheme, setSystemTheme] =
     useState<ResolvedTheme>(getSystemTheme);
   const resolvedTheme = theme === "system" ? systemTheme : theme;
