@@ -1,0 +1,51 @@
+import type { WeekendRoute } from "../types/domain";
+
+export const weekendRoutes: WeekendRoute[] = [
+  {
+    id: "art-district-to-riverside",
+    title: "从艺术区走到亮马河",
+    activityIds: ["798-art-weekend", "liangma-river-live"],
+    summary: "下午看展，傍晚转场到亮马河散步并听一场水岸演出。",
+    totalPrice: 80,
+    durationMinutes: 390,
+    weatherKinds: ["sunny", "cloudy"],
+    suitablePartySizes: ["pair", "group"],
+    editorOrder: 1,
+  },
+  {
+    id: "rainy-indoor-arts-day",
+    title: "雨天双馆艺术日",
+    activityIds: ["798-art-weekend", "ncpa-weekend-concert"],
+    summary: "用两个室内场馆串起完整一天，中间预留地铁转场和午餐时间。",
+    totalPrice: 260,
+    durationMinutes: 540,
+    weatherKinds: ["rain", "cloudy"],
+    suitablePartySizes: ["solo", "pair"],
+    editorOrder: 2,
+  },
+  {
+    id: "west-beijing-outdoor-day",
+    title: "京西登高与工业漫游",
+    activityIds: [
+      "xiangshan-morning-hike",
+      "shougang-industrial-exhibition",
+    ],
+    summary: "清晨从香山登高，下午转到首钢园，在户外体力段后安排室内展览。",
+    totalPrice: 130,
+    durationMinutes: 570,
+    weatherKinds: ["sunny", "cloudy"],
+    suitablePartySizes: ["pair", "group"],
+    editorOrder: 3,
+  },
+  {
+    id: "weekend-market-sampler",
+    title: "北京周末市集采样",
+    activityIds: ["panjiayuan-vintage-market", "gulou-weekend-market"],
+    summary: "上午在潘家园淘旧物，午后到鼓楼附近继续逛手作、唱片和旧书。",
+    totalPrice: 45,
+    durationMinutes: 480,
+    weatherKinds: ["sunny", "cloudy"],
+    suitablePartySizes: ["solo", "pair", "group"],
+    editorOrder: 4,
+  },
+];
