@@ -40,44 +40,107 @@ export const defaultAppState: AppState = {
   theme: "system",
 };
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isOptionalBoolean(value: unknown): value is boolean | undefined {
+  return value === undefined || typeof value === "boolean";
+}
+
 function isPreferences(value: unknown): value is Preferences {
-  if (typeof value !== "object" || value === null) {
+  if (!isRecord(value)) {
     return false;
   }
 
-  const candidate = value as Partial<Preferences>;
   return (
-    Array.isArray(candidate.activityTypes) &&
-    candidate.activityTypes.every(
+    Array.isArray(value.activityTypes) &&
+    value.activityTypes.every(
       (activityType) =>
         typeof activityType === "string" &&
         activityTypes.has(activityType),
     ) &&
-    typeof candidate.budget === "string" &&
-    budgets.has(candidate.budget) &&
-    typeof candidate.partySize === "string" &&
-    partySizes.has(candidate.partySize)
+    typeof value.budget === "string" &&
+    budgets.has(value.budget) &&
+    typeof value.partySize === "string" &&
+    partySizes.has(value.partySize)
+  );
+}
+
+function isTeam(value: unknown): value is Team {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    typeof value.id === "string" &&
+    typeof value.activityId === "string" &&
+    typeof value.leader === "string" &&
+    typeof value.departureTime === "string" &&
+    typeof value.meetingPoint === "string" &&
+    typeof value.capacity === "number" &&
+    typeof value.memberCount === "number" &&
+    typeof value.note === "string" &&
+    isOptionalBoolean(value.joined) &&
+    isOptionalBoolean(value.createdByUser)
+  );
+}
+
+function isCheckin(value: unknown): value is Checkin {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    typeof value.id === "string" &&
+    typeof value.activityId === "string" &&
+    typeof value.date === "string" &&
+    typeof value.partySize === "string" &&
+    partySizes.has(value.partySize) &&
+    typeof value.rating === "number" &&
+    typeof value.note === "string"
+  );
+}
+
+function isGuide(value: unknown): value is Guide {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    typeof value.id === "string" &&
+    typeof value.title === "string" &&
+    typeof value.activityId === "string" &&
+    typeof value.activityType === "string" &&
+    activityTypes.has(value.activityType) &&
+    typeof value.summary === "string" &&
+    typeof value.audience === "string" &&
+    typeof value.author === "string" &&
+    isOptionalBoolean(value.saved) &&
+    isOptionalBoolean(value.createdByUser)
   );
 }
 
 function isAppState(value: unknown): value is AppState {
-  if (typeof value !== "object" || value === null) {
+  if (!isRecord(value)) {
     return false;
   }
 
-  const candidate = value as Partial<AppState>;
   return (
-    typeof candidate.onboardingComplete === "boolean" &&
-    isPreferences(candidate.preferences) &&
-    Array.isArray(candidate.favoriteActivityIds) &&
-    candidate.favoriteActivityIds.every(
+    typeof value.onboardingComplete === "boolean" &&
+    isPreferences(value.preferences) &&
+    Array.isArray(value.favoriteActivityIds) &&
+    value.favoriteActivityIds.every(
       (activityId) => typeof activityId === "string",
     ) &&
-    Array.isArray(candidate.teams) &&
-    Array.isArray(candidate.checkins) &&
-    Array.isArray(candidate.guides) &&
-    typeof candidate.theme === "string" &&
-    themes.has(candidate.theme)
+    Array.isArray(value.teams) &&
+    value.teams.every(isTeam) &&
+    Array.isArray(value.checkins) &&
+    value.checkins.every(isCheckin) &&
+    Array.isArray(value.guides) &&
+    value.guides.every(isGuide) &&
+    typeof value.theme === "string" &&
+    themes.has(value.theme)
   );
 }
 
