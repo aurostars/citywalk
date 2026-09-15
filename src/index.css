@@ -222,7 +222,7 @@ main {
   width: fit-content;
   margin: 0 0 18px;
   padding: 6px 10px;
-  border-radius: 999px;
+  border-radius: 8px;
   background: var(--accent);
   color: var(--accent-ink);
   font-size: 0.75rem;
