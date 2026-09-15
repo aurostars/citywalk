@@ -1,6 +1,7 @@
 import type { RouteObject } from "react-router-dom";
 import { useRoutes } from "react-router-dom";
 import { AppShell } from "../components/AppShell";
+import { HomePage } from "../features/home/HomePage";
 
 interface RoutePlaceholderProps {
   description: string;
@@ -28,13 +29,7 @@ export const appRoutes: RouteObject[] = [
     children: [
       {
         index: true,
-        element: (
-          <RoutePlaceholder
-            description="下一步会把你的兴趣和预算变成一份可执行的北京周末路线。"
-            id="recommendations"
-            title="这个周末，换条路走。"
-          />
-        ),
+        element: <HomePage />,
       },
       {
         path: "teams",
