@@ -33,6 +33,35 @@ function makeActivity(overrides: Partial<Activity> = {}): Activity {
   };
 }
 
+function scheduleIncludesDeparture(
+  schedule: string,
+  departureTime: string,
+): boolean {
+  const [dayRange, timeRange] = schedule.split(" ");
+  const [startDay, endDay = startDay] = dayRange.split("至");
+  const [startTime, endTime] = timeRange.split("-");
+  const weekdays = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+  const departureDay = weekdays[
+    new Date(`${departureTime.slice(0, 10)}T00:00:00Z`).getUTCDay()
+  ];
+  const departureClock = departureTime.slice(11, 16);
+  const startDayIndex = weekdays.indexOf(startDay);
+  const endDayIndex = weekdays.indexOf(endDay);
+  const departureDayIndex = weekdays.indexOf(departureDay);
+  const includesDay =
+    startDayIndex <= endDayIndex
+      ? departureDayIndex >= startDayIndex &&
+        departureDayIndex <= endDayIndex
+      : departureDayIndex >= startDayIndex ||
+        departureDayIndex <= endDayIndex;
+
+  return (
+    includesDay &&
+    departureClock >= startTime &&
+    departureClock <= endTime
+  );
+}
+
 const strictPreferences: Preferences = {
   activityTypes: ["exhibition"],
   budget: "free",
@@ -251,4 +280,41 @@ it("keeps related fixtures connected to known activities", () => {
   expect(guides.every(({ activityId }) => activityIds.has(activityId))).toBe(
     true,
   );
+});
+
+it("schedules every team departure during its activity", () => {
+  const activitiesById = new Map(
+    activities.map((activity) => [activity.id, activity]),
+  );
+  const conflictingTeamIds = teams
+    .filter((team) => {
+      const activity = activitiesById.get(team.activityId);
+
+      return (
+        !activity ||
+        !scheduleIncludesDeparture(activity.schedule, team.departureTime)
+      );
+    })
+    .map(({ id }) => id);
+
+  expect(conflictingTeamIds).toEqual([]);
+});
+
+it("advertises only party sizes supported by every route activity", () => {
+  const activitiesById = new Map(
+    activities.map((activity) => [activity.id, activity]),
+  );
+  const unsupportedRoutePartySizes = weekendRoutes.flatMap((route) =>
+    route.suitablePartySizes.flatMap((partySize) =>
+      route.activityIds.flatMap((activityId) => {
+        const activity = activitiesById.get(activityId);
+
+        return activity?.suitablePartySizes.includes(partySize)
+          ? []
+          : [`${route.id}:${partySize}:${activityId}`];
+      }),
+    ),
+  );
+
+  expect(unsupportedRoutePartySizes).toEqual([]);
 });

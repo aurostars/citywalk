@@ -45,7 +45,7 @@ export const weekendRoutes: WeekendRoute[] = [
     totalPrice: 45,
     durationMinutes: 480,
     weatherKinds: ["sunny", "cloudy"],
-    suitablePartySizes: ["solo", "pair", "group"],
+    suitablePartySizes: ["pair", "group"],
     editorOrder: 4,
   },
 ];

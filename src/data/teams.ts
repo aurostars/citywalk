@@ -35,7 +35,7 @@ export const teams: Team[] = [
     id: "team-wenyu-cycling",
     activityId: "wenyu-river-cycling",
     leader: "许言",
-    departureTime: "2026-09-20T09:00",
+    departureTime: "2026-09-19T09:00",
     meetingPoint: "温榆河公园 6 号门",
     capacity: 6,
     memberCount: 3,
