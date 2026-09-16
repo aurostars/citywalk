@@ -644,6 +644,15 @@ test("generated images load from the required endpoint without shifting frames",
   let hasClaimedRequiredImage = false;
   let heldImageUrl: string | null = null;
   let heldResponseReady = false;
+  const mockedGeneratedImage = Buffer.from(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900">
+      <rect width="1200" height="900" fill="#dce1d8" />
+      <rect x="88" y="164" width="432" height="548" fill="#20241e" />
+      <rect x="568" y="104" width="534" height="612" fill="#cbd2c7" />
+      <rect x="640" y="188" width="188" height="240" fill="#eff2ed" />
+      <circle cx="944" cy="248" r="94" fill="#c8ef32" />
+    </svg>`,
+  );
   let releaseHeldImageResponse: () => void = () => {};
   const heldImageResponseGate = new Promise<void>((resolve) => {
     releaseHeldImageResponse = resolve;
@@ -661,10 +670,16 @@ test("generated images load from the required endpoint without shifting frames",
 
       hasClaimedRequiredImage = true;
       heldImageUrl = route.request().url();
-      const response = await route.fetch();
       heldResponseReady = true;
       await heldImageResponseGate;
-      await route.fulfill({ response });
+      await route.fulfill({
+        body: mockedGeneratedImage,
+        contentType: "image/svg+xml",
+        headers: {
+          "cache-control": "no-store",
+        },
+        status: 200,
+      });
     },
   );
 
