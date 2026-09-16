@@ -1,4 +1,5 @@
 import type { Activity } from "../types/domain";
+import { assetPath } from "../lib/assetPath";
 
 export const activities: Activity[] = [
   {
@@ -15,8 +16,7 @@ export const activities: Activity[] = [
     startTime: "10:00",
     schedule: "周六至周日 10:00-18:00",
     durationMinutes: 180,
-    imageUrl:
-      "https://copilot-cn.bytedance.net/api/ide/v1/text_to_image?prompt=Realistic%20editorial%20travel%20photograph%20of%20798%20Art%20District%20in%20Beijing%2C%20red%20brick%20industrial%20gallery%20courtyard%2C%20young%20visitors%2C%20soft%20overcast%20light%2C%20natural%20colors%2C%20documentary%20style%2C%20no%20text&image_size=landscape_4_3",
+    imageUrl: assetPath("images/activities/798-art-weekend.webp"),
     imageAlt: "798 艺术区红砖厂房与正在看展的年轻人",
     summary: "从工业建筑里的当代展览开始，留出时间逛独立书店和园区小店。",
     editorOrder: 1,
@@ -35,8 +35,7 @@ export const activities: Activity[] = [
     startTime: "13:00",
     schedule: "周六 13:00-18:00",
     durationMinutes: 150,
-    imageUrl:
-      "https://copilot-cn.bytedance.net/api/ide/v1/text_to_image?prompt=Realistic%20editorial%20travel%20photograph%20of%20a%20weekend%20craft%20market%20near%20Beijing%20Drum%20Tower%2C%20hutong%20storefronts%2C%20young%20shoppers%2C%20clear%20autumn%20daylight%2C%20natural%20colors%2C%20no%20text&image_size=landscape_4_3",
+    imageUrl: assetPath("images/activities/gulou-weekend-market.webp"),
     imageAlt: "鼓楼附近胡同里的周末手作市集",
     summary: "沿鼓楼东大街慢慢逛手作摊位，再转进胡同寻找唱片和旧书。",
     editorOrder: 2,
@@ -55,8 +54,7 @@ export const activities: Activity[] = [
     startTime: "18:30",
     schedule: "周六 18:30-20:30",
     durationMinutes: 120,
-    imageUrl:
-      "https://copilot-cn.bytedance.net/api/ide/v1/text_to_image?prompt=Realistic%20editorial%20night%20photograph%20of%20a%20small%20live%20music%20performance%20beside%20Liangma%20River%20in%20Beijing%2C%20waterfront%20lights%2C%20young%20audience%2C%20cinematic%20but%20natural%2C%20no%20text&image_size=landscape_4_3",
+    imageUrl: assetPath("images/activities/liangma-river-live.webp"),
     imageAlt: "亮马河水岸灯光下的小型音乐现场",
     summary: "傍晚从河岸步道走到水边舞台，在城市灯光亮起时听一场轻松演出。",
     editorOrder: 3,
@@ -75,8 +73,7 @@ export const activities: Activity[] = [
     startTime: "14:30",
     schedule: "周日 14:30-16:30",
     durationMinutes: 120,
-    imageUrl:
-      "https://copilot-cn.bytedance.net/api/ide/v1/text_to_image?prompt=Realistic%20editorial%20architectural%20photograph%20of%20the%20National%20Centre%20for%20the%20Performing%20Arts%20in%20Beijing%20at%20blue%20hour%2C%20reflecting%20pool%2C%20visitors%20arriving%2C%20natural%20detail%2C%20no%20text&image_size=landscape_4_3",
+    imageUrl: assetPath("images/activities/ncpa-weekend-concert.webp"),
     imageAlt: "傍晚国家大剧院倒映在水面上",
     summary: "在室内音乐厅安排一段完整的午后，适合想安静听完一场演出的周末。",
     editorOrder: 4,
@@ -95,8 +92,9 @@ export const activities: Activity[] = [
     startTime: "08:00",
     schedule: "周六 08:00-12:00",
     durationMinutes: 180,
-    imageUrl:
-      "https://copilot-cn.bytedance.net/api/ide/v1/text_to_image?prompt=Realistic%20editorial%20travel%20photograph%20of%20Panjiayuan%20flea%20market%20in%20Beijing%2C%20covered%20stalls%20with%20vintage%20objects%20and%20books%2C%20morning%20shoppers%2C%20warm%20natural%20light%2C%20no%20text&image_size=landscape_4_3",
+    imageUrl: assetPath(
+      "images/activities/panjiayuan-vintage-market.webp",
+    ),
     imageAlt: "潘家园早市摆满旧书和老物件的摊位",
     summary: "早点到旧货市场，从旧书、器物和海报摊位里慢慢淘一件有故事的小物。",
     editorOrder: 5,
@@ -115,8 +113,9 @@ export const activities: Activity[] = [
     startTime: "10:00",
     schedule: "周六至周日 10:00-17:00",
     durationMinutes: 150,
-    imageUrl:
-      "https://copilot-cn.bytedance.net/api/ide/v1/text_to_image?prompt=Realistic%20editorial%20architectural%20photograph%20inside%20Shougang%20Park%20in%20Beijing%2C%20preserved%20blast%20furnace%20industrial%20structure%2C%20contemporary%20exhibition%2C%20young%20visitors%2C%20soft%20daylight%2C%20no%20text&image_size=landscape_4_3",
+    imageUrl: assetPath(
+      "images/activities/shougang-industrial-exhibition.webp",
+    ),
     imageAlt: "首钢园高炉工业空间内的展览现场",
     summary: "在高炉工业空间里看城市更新主题展，顺路观察保留下来的钢铁结构。",
     editorOrder: 6,
@@ -135,8 +134,7 @@ export const activities: Activity[] = [
     startTime: "07:30",
     schedule: "周日 07:30-11:30",
     durationMinutes: 240,
-    imageUrl:
-      "https://copilot-cn.bytedance.net/api/ide/v1/text_to_image?prompt=Realistic%20editorial%20landscape%20photograph%20of%20a%20morning%20hiking%20trail%20in%20Fragrant%20Hills%20Beijing%2C%20stone%20steps%2C%20autumn%20trees%2C%20young%20hikers%2C%20clear%20soft%20sunlight%2C%20natural%20colors%2C%20no%20text&image_size=landscape_4_3",
+    imageUrl: assetPath("images/activities/xiangshan-morning-hike.webp"),
     imageAlt: "香山清晨林间石阶上的徒步者",
     summary: "趁游客增多前走一段林间上升路线，在观景点休息后原路返回。",
     editorOrder: 7,
@@ -155,8 +153,7 @@ export const activities: Activity[] = [
     startTime: "09:00",
     schedule: "周六 09:00-12:30",
     durationMinutes: 210,
-    imageUrl:
-      "https://copilot-cn.bytedance.net/api/ide/v1/text_to_image?prompt=Realistic%20editorial%20outdoor%20photograph%20of%20young%20people%20cycling%20on%20a%20greenway%20in%20Wenyu%20River%20Park%20Beijing%2C%20wetland%20grass%20and%20open%20sky%2C%20bright%20natural%20daylight%2C%20no%20text&image_size=landscape_4_3",
+    imageUrl: assetPath("images/activities/wenyu-river-cycling.webp"),
     imageAlt: "温榆河公园湿地绿道上骑行的年轻人",
     summary: "沿湿地绿道完成一段平缓骑行，在开阔草地和水岸驿站之间停留。",
     editorOrder: 8,

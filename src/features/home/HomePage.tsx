@@ -9,6 +9,7 @@ import { useAppState } from "../../app/AppState";
 import { ImageWithFallback } from "../../components/ImageWithFallback";
 import { activities } from "../../data/activities";
 import { weekendWeather } from "../../data/weather";
+import { assetPath } from "../../lib/assetPath";
 import { recommendActivities } from "../recommendations/recommend";
 import type {
   ActivityType,
@@ -23,8 +24,7 @@ import {
 } from "./PreferencePanel";
 import { RecommendationResults } from "./RecommendationResults";
 
-const heroImageUrl =
-  "https://copilot-cn.bytedance.net/api/ide/v1/text_to_image?prompt=Documentary%20street%20photography%20of%20young%20Chinese%20college%20students%20walking%20through%20a%20contemporary%20art%20district%20in%20Beijing%2C%20daylight%2C%20candid%2C%20clean%20editorial%20composition%2C%20realistic%2C%20muted%20colors%2C%20no%20text&image_size=landscape_4_3";
+const heroImageUrl = assetPath("images/hero/beijing-weekend.webp");
 
 const allActivityTypes: ActivityType[] = [
   "exhibition",

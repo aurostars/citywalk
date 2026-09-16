@@ -1,3 +1,7 @@
+vi.hoisted(() => {
+  vi.stubEnv("BASE_URL", "/citywalk/");
+});
+
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { defaultAppState } from "../../app/AppState";
@@ -29,10 +33,13 @@ it("renders an image-led guide list with a clear all-types filter", async () => 
     }),
   ).toHaveAttribute(
     "src",
-    expect.stringContaining(
-      "text_to_image?prompt=Realistic%20editorial%20travel%20photograph",
-    ),
+    "/citywalk/images/activities/798-art-weekend.webp",
   );
+  expect(
+    within(initialGuides[0]).getByRole("img", {
+      name: "798 艺术区红砖厂房与正在看展的年轻人",
+    }),
+  ).not.toHaveAttribute("src", expect.stringContaining("text_to_image"));
 
   await user.click(
     within(filters).getByRole("button", { name: "市集" }),

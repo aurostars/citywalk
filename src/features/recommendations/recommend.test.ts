@@ -1,3 +1,7 @@
+vi.hoisted(() => {
+  vi.stubEnv("BASE_URL", "/citywalk/");
+});
+
 import { activities } from "../../data/activities";
 import { guides } from "../../data/guides";
 import { weekendRoutes } from "../../data/routes";
@@ -237,7 +241,7 @@ it("covers all required fixture dimensions", () => {
   );
 });
 
-it("covers the required Beijing venues with generated editorial images", () => {
+it("covers the required Beijing venues with static editorial images", () => {
   const activityCopy = activities.map(
     ({ summary, title, venue }) => `${title} ${venue} ${summary}`,
   );
@@ -256,14 +260,10 @@ it("covers the required Beijing venues with generated editorial images", () => {
   }
 
   for (const { imageUrl } of activities) {
-    const url = new URL(imageUrl);
-
-    expect(`${url.origin}${url.pathname}`).toBe(
-      "https://copilot-cn.bytedance.net/api/ide/v1/text_to_image",
+    expect(imageUrl).toMatch(
+      /^\/citywalk\/images\/activities\/[a-z0-9-]+\.webp$/,
     );
-    expect(url.searchParams.get("prompt")).toBeTruthy();
-    expect(url.searchParams.get("image_size")).toBe("landscape_4_3");
-    expect(imageUrl).not.toContain(" ");
+    expect(imageUrl).not.toContain("text_to_image");
   }
 });
 
