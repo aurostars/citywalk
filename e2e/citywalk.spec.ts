@@ -1,9 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
-const imageEndpoint =
-  "https://copilot-cn.bytedance.net/api/ide/v1/text_to_image";
-const heldImagePrompt =
-  "Realistic editorial travel photograph of 798 Art District";
 const reducedMotionCompletionLimitMs = 300;
 
 async function resetApp(page: Page) {
@@ -638,48 +634,37 @@ test("reduced motion keeps state changes immediate and removes decorative animat
   ).toHaveCSS("transition-duration", "0s");
 });
 
-test("generated images load from the required endpoint without shifting frames", async ({
+test("static images load without generation requests or shifting frames", async ({
   page,
 }) => {
-  let hasClaimedRequiredImage = false;
+  const generationRequests: string[] = [];
+  let hasClaimedStaticImage = false;
   let heldImageUrl: string | null = null;
   let heldResponseReady = false;
-  const mockedGeneratedImage = Buffer.from(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900">
-      <rect width="1200" height="900" fill="#dce1d8" />
-      <rect x="88" y="164" width="432" height="548" fill="#20241e" />
-      <rect x="568" y="104" width="534" height="612" fill="#cbd2c7" />
-      <rect x="640" y="188" width="188" height="240" fill="#eff2ed" />
-      <circle cx="944" cy="248" r="94" fill="#c8ef32" />
-    </svg>`,
-  );
   let releaseHeldImageResponse: () => void = () => {};
   const heldImageResponseGate = new Promise<void>((resolve) => {
     releaseHeldImageResponse = resolve;
   });
 
+  await page.route("**/api/ide/v1/text_to_image**", async (route) => {
+    generationRequests.push(route.request().url());
+    await route.abort();
+  });
   await page.route(
     (url) =>
-      url.href.startsWith(imageEndpoint) &&
-      url.searchParams.get("prompt")?.startsWith(heldImagePrompt) === true,
+      url.pathname.startsWith("/citywalk/images/activities/") &&
+      url.pathname.endsWith(".webp"),
     async (route) => {
-      if (hasClaimedRequiredImage) {
+      if (hasClaimedStaticImage) {
         await route.continue();
         return;
       }
 
-      hasClaimedRequiredImage = true;
+      hasClaimedStaticImage = true;
       heldImageUrl = route.request().url();
       heldResponseReady = true;
       await heldImageResponseGate;
-      await route.fulfill({
-        body: mockedGeneratedImage,
-        contentType: "image/svg+xml",
-        headers: {
-          "cache-control": "no-store",
-        },
-        status: 200,
-      });
+      await route.continue();
     },
   );
 
@@ -688,6 +673,7 @@ test("generated images load from the required endpoint without shifting frames",
     await expect
       .poll(() => heldResponseReady, { timeout: 30_000 })
       .toBe(true);
+    expect(generationRequests).toHaveLength(0);
     expect(heldImageUrl).not.toBeNull();
 
     const before = await page.evaluate((url) => {
@@ -765,10 +751,14 @@ test("generated images load from the required endpoint without shifting frames",
         .toBe(true);
       await expect(image).toHaveAttribute(
         "src",
-        new RegExp(`^${imageEndpoint}`),
+        /\/citywalk\/images\/.+\.webp$/,
       );
-      await expect(image).toHaveAttribute("width", /^[1-9]\d*$/);
-      await expect(image).toHaveAttribute("height", /^[1-9]\d*$/);
+      expect(await image.evaluate((node) => node.naturalWidth)).toBeGreaterThan(
+        0,
+      );
+      expect(
+        await image.evaluate((node) => node.naturalHeight),
+      ).toBeGreaterThan(0);
     }
   } finally {
     releaseHeldImageResponse();
