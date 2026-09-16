@@ -87,3 +87,72 @@ Exit: `0` with no output.
 - Task 8 uses Phosphor icons only, 8px surfaces and media, and pills only for filters and status.
 - The guide list is a flat article composition with no nested card containers.
 - `README.md` and `.github/workflows/deploy.yml` were neither modified nor staged.
+
+## Fix Round 1
+
+### Delivered
+
+- Publishing now selects the new guide's activity type before the composer closes, so a guide created under a different active filter is visible first after `完成`.
+- The filter update applies to both confirmed local storage writes and session-only outcomes.
+- After either submission outcome, Escape is ignored and the header close action is absent; `完成` is the only exit.
+- Completion still restores focus to `写攻略`.
+
+### RED Evidence
+
+Cross-filter command:
+
+```bash
+npm run test:run -- src/features/guides/GuidesPage.test.tsx -t "shows a guide published under another type first after completion"
+```
+
+Exit: `1`. Vitest reported `1 failed` test and `5 skipped`; the `展览` filter had `aria-pressed="false"` instead of `"true"`.
+
+Post-submit exit command:
+
+```bash
+npm run test:run -- src/features/guides/GuidesPage.test.tsx -t "publishes a guide first|keeps a failed publication"
+```
+
+Exit: `1`. Vitest reported `2 failed` tests and `4 skipped`; both persistent and session-only flows failed because Escape removed the submitted dialog.
+
+Session-only filter mutation command:
+
+```bash
+npm run test:run -- src/features/guides/GuidesPage.test.tsx -t "keeps a failed publication"
+```
+
+Exit: `1` with a temporary mutation that updated the filter only when `result.persisted` was true. Vitest reported `1 failed` test and `5 skipped`; the session-only flow caught `aria-pressed="false"` on `展览`. The unconditional filter update was restored before verification.
+
+### GREEN Evidence
+
+Focused command:
+
+```bash
+npm run test:run -- src/features/guides/GuidesPage.test.tsx src/app/app-state.test.tsx
+```
+
+Exit: `0`. Vitest reported `2 passed` files and `19 passed` tests.
+
+Full unit command:
+
+```bash
+npm run test:run
+```
+
+Exit: `0`. Vitest reported `12 passed` files and `93 passed` tests.
+
+Build command:
+
+```bash
+npm run build
+```
+
+Exit: `0`. TypeScript and Vite completed successfully; Vite transformed `4996` modules and built in `2.47s`. Output was `533.91 kB` JavaScript (`164.59 kB` gzip). The existing non-blocking chunk warning remains deferred; route splitting was not changed in this task.
+
+Diff command:
+
+```bash
+git diff --check
+```
+
+Exit: `0` with no output.

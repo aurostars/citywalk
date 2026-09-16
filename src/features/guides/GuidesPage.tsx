@@ -128,6 +128,12 @@ export function GuidesPage() {
         );
   }, [activeFilter, state.guides]);
 
+  const publishAndRevealGuide: typeof publishGuide = (guide) => {
+    const result = publishGuide(guide);
+    setActiveFilter(guide.activityType);
+    return result;
+  };
+
   return (
     <div className="guides-page">
       <header className="results-masthead guides-masthead">
@@ -204,7 +210,7 @@ export function GuidesPage() {
         <GuideComposer
           activities={activities}
           onClose={() => setIsComposing(false)}
-          onPublish={publishGuide}
+          onPublish={publishAndRevealGuide}
         />
       ) : null}
     </div>

@@ -156,7 +156,9 @@ export function GuideComposer({
   function trapDialogFocus(event: KeyboardEvent<HTMLDivElement>) {
     if (event.key === "Escape") {
       event.preventDefault();
-      onClose();
+      if (!submissionStatus) {
+        onClose();
+      }
       return;
     }
 
@@ -200,14 +202,16 @@ export function GuideComposer({
             <p className="section-label">本地发布</p>
             <h2 id="guide-dialog-title">分享周末攻略</h2>
           </div>
-          <button
-            aria-label="关闭攻略窗口"
-            className="theme-toggle guide-dialog-close"
-            onClick={onClose}
-            type="button"
-          >
-            <X aria-hidden="true" size={20} weight="bold" />
-          </button>
+          {submissionStatus ? null : (
+            <button
+              aria-label="关闭攻略窗口"
+              className="theme-toggle guide-dialog-close"
+              onClick={onClose}
+              type="button"
+            >
+              <X aria-hidden="true" size={20} weight="bold" />
+            </button>
+          )}
         </header>
 
         {submissionStatus ? (

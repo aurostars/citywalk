@@ -149,6 +149,13 @@ it("publishes a guide first, retains values, and restores focus on completion", 
     "两人同行，喜欢慢慢逛",
   );
 
+  await user.keyboard("{Escape}");
+  expect(screen.getByRole("dialog", { name: "分享周末攻略" }))
+    .toBeVisible();
+  expect(
+    screen.queryByRole("button", { name: "关闭攻略窗口" }),
+  ).not.toBeInTheDocument();
+
   await user.click(screen.getByRole("button", { name: "完成" }));
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   expect(openButton).toHaveFocus();
@@ -156,6 +163,44 @@ it("publishes a guide first, retains values, and restores focus on completion", 
   const firstGuide = screen.getAllByRole("article")[0];
   expect(firstGuide).toHaveTextContent("雨天也能走的东城路线");
   expect(firstGuide).toHaveTextContent("我的分享");
+});
+
+it("shows a guide published under another type first after completion", async () => {
+  const user = userEvent.setup();
+  renderApp("/guides");
+
+  const filters = screen.getByRole("group", {
+    name: "按活动类型筛选",
+  });
+  await user.click(
+    within(filters).getByRole("button", { name: "市集" }),
+  );
+  await user.click(screen.getByRole("button", { name: "写攻略" }));
+  await user.type(
+    screen.getByLabelText("标题"),
+    "跨分类发布的展览路线",
+  );
+  await user.selectOptions(
+    screen.getByLabelText("关联地点"),
+    "798-art-weekend",
+  );
+  await user.type(
+    screen.getByLabelText("正文摘要"),
+    "从市集筛选中发布一条展览攻略。",
+  );
+  await user.type(
+    screen.getByLabelText("适合人群"),
+    "周末看展的人",
+  );
+  await user.click(screen.getByRole("button", { name: "发布攻略" }));
+  await user.click(screen.getByRole("button", { name: "完成" }));
+
+  expect(
+    within(filters).getByRole("button", { name: "展览" }),
+  ).toHaveAttribute("aria-pressed", "true");
+  expect(screen.getAllByRole("article")[0]).toHaveTextContent(
+    "跨分类发布的展览路线",
+  );
 });
 
 it("keeps a failed publication in session without claiming success or writing twice", async () => {
@@ -167,7 +212,14 @@ it("keeps a failed publication in session without claiming success or writing tw
     });
   renderApp("/guides");
 
-  await user.click(screen.getByRole("button", { name: "写攻略" }));
+  const filters = screen.getByRole("group", {
+    name: "按活动类型筛选",
+  });
+  await user.click(
+    within(filters).getByRole("button", { name: "市集" }),
+  );
+  const openButton = screen.getByRole("button", { name: "写攻略" });
+  await user.click(openButton);
   await user.type(
     screen.getByLabelText("标题"),
     "只在本次会话保留的路线",
@@ -212,7 +264,18 @@ it("keeps a failed publication in session without claiming success or writing tw
   expect(screen.getByRole("button", { name: "完成" })).toBeEnabled();
   expect(setItem).toHaveBeenCalledTimes(1);
 
+  await user.keyboard("{Escape}");
+  expect(screen.getByRole("dialog", { name: "分享周末攻略" }))
+    .toBeVisible();
+  expect(
+    screen.queryByRole("button", { name: "关闭攻略窗口" }),
+  ).not.toBeInTheDocument();
+
   await user.click(screen.getByRole("button", { name: "完成" }));
+  expect(openButton).toHaveFocus();
+  expect(
+    within(filters).getByRole("button", { name: "展览" }),
+  ).toHaveAttribute("aria-pressed", "true");
   expect(screen.getAllByRole("article")[0]).toHaveTextContent(
     "只在本次会话保留的路线",
   );
