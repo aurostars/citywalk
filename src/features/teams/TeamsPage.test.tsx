@@ -19,7 +19,7 @@ it("renders fixture details and joins and leaves an available team", async () =>
   });
   expect(
     within(team).getByRole("img", {
-      name: "798 艺术区入口的红色数字标识",
+      name: "798 艺术空间内参观展览的年轻人",
     }),
   ).toBeVisible();
   expect(within(team).getByText("9月19日 10:00")).toBeVisible();

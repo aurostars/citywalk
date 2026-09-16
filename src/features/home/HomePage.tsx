@@ -229,7 +229,7 @@ export function HomePage() {
 
               <figure className="onboarding-media">
                 <ImageWithFallback
-                  alt="北京中轴线古建筑与远处城市天际线"
+                  alt="北京校园街道上结伴步行的学生"
                   className="onboarding-image"
                   fallbackLabel="北京周末街区"
                   height={930}

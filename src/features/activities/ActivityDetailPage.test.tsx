@@ -19,7 +19,7 @@ it("shows fixture-derived activity facts and persists favorite state", async () 
   ).toBeVisible();
   expect(
     screen.getByRole("img", {
-      name: "798 艺术区入口的红色数字标识",
+      name: "798 艺术空间内参观展览的年轻人",
     }),
   ).toBeVisible();
   const activityFacts = screen.getByRole("region", {
