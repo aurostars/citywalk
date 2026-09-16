@@ -3,28 +3,9 @@ import { useRoutes } from "react-router-dom";
 import { AppShell } from "../components/AppShell";
 import { ActivityDetailPage } from "../features/activities/ActivityDetailPage";
 import { CheckinsPage } from "../features/checkins/CheckinsPage";
+import { GuidesPage } from "../features/guides/GuidesPage";
 import { HomePage } from "../features/home/HomePage";
 import { TeamsPage } from "../features/teams/TeamsPage";
-
-interface RoutePlaceholderProps {
-  description: string;
-  id: string;
-  title: string;
-}
-
-function RoutePlaceholder({
-  description,
-  id,
-  title,
-}: RoutePlaceholderProps) {
-  return (
-    <section className="route-placeholder" aria-labelledby={`${id}-title`}>
-      <p className="route-kicker">北京周末</p>
-      <h1 id={`${id}-title`}>{title}</h1>
-      <p>{description}</p>
-    </section>
-  );
-}
 
 export const appRoutes: RouteObject[] = [
   {
@@ -48,13 +29,7 @@ export const appRoutes: RouteObject[] = [
       },
       {
         path: "guides",
-        element: (
-          <RoutePlaceholder
-            description="从真实路线和在地经验里找到下一次出发的灵感。"
-            id="guides"
-            title="北京攻略"
-          />
-        ),
+        element: <GuidesPage />,
       },
     ],
   },

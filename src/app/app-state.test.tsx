@@ -65,6 +65,7 @@ function AppStateHarness() {
   const [createdCheckinId, setCreatedCheckinId] = useState("");
   const [checkinPersistence, setCheckinPersistence] = useState("");
   const [createdGuideId, setCreatedGuideId] = useState("");
+  const [guidePersistence, setGuidePersistence] = useState("");
 
   return (
     <>
@@ -73,6 +74,7 @@ function AppStateHarness() {
       <output aria-label="新打卡 ID">{createdCheckinId}</output>
       <output aria-label="打卡持久化结果">{checkinPersistence}</output>
       <output aria-label="新攻略 ID">{createdGuideId}</output>
+      <output aria-label="攻略持久化结果">{guidePersistence}</output>
       {persistenceWarning ? <p role="status">{persistenceWarning}</p> : null}
 
       <button
@@ -148,17 +150,19 @@ function AppStateHarness() {
         添加打卡
       </button>
       <button
-        onClick={() =>
-          setCreatedGuideId(
-            publishGuide({
-              title: "雨天也能走的东城路线",
-              activityId: "798-art-weekend",
-              activityType: "exhibition",
-              summary: "从室内展览开始，沿途安排咖啡和书店。",
-              audience: "两人同行，喜欢慢慢逛",
-            }),
-          )
-        }
+        onClick={() => {
+          const result = publishGuide({
+            title: "雨天也能走的东城路线",
+            activityId: "798-art-weekend",
+            activityType: "exhibition",
+            summary: "从室内展览开始，沿途安排咖啡和书店。",
+            audience: "两人同行，喜欢慢慢逛",
+          });
+          setCreatedGuideId(result.id);
+          setGuidePersistence(
+            result.persisted ? "persistent" : "session-only",
+          );
+        }}
         type="button"
       >
         发布攻略
@@ -363,6 +367,9 @@ it("publishes a user guide first and toggles saved guides", async () => {
     author: "我",
     createdByUser: true,
   });
+  expect(screen.getByLabelText("攻略持久化结果")).toHaveTextContent(
+    "persistent",
+  );
 
   await user.click(
     screen.getByRole("button", { name: "切换攻略收藏" }),
@@ -424,6 +431,30 @@ it("reports a session-only check-in after one failed persistence attempt", async
     rating: 5,
   });
   expect(screen.getByLabelText("打卡持久化结果")).toHaveTextContent(
+    "session-only",
+  );
+  expect(setItem).toHaveBeenCalledTimes(1);
+});
+
+it("reports a session-only guide after one failed persistence attempt", async () => {
+  const user = userEvent.setup();
+  const setItem = vi
+    .spyOn(Storage.prototype, "setItem")
+    .mockImplementation(() => {
+      throw new DOMException("Storage unavailable", "QuotaExceededError");
+    });
+  renderStateHarness();
+
+  await user.click(screen.getByRole("button", { name: "发布攻略" }));
+
+  const createdId = screen.getByLabelText("新攻略 ID").textContent ?? "";
+  expect(createdId).toMatch(/^guide-/);
+  expect(readRenderedState().guides[0]).toMatchObject({
+    id: createdId,
+    title: "雨天也能走的东城路线",
+    createdByUser: true,
+  });
+  expect(screen.getByLabelText("攻略持久化结果")).toHaveTextContent(
     "session-only",
   );
   expect(setItem).toHaveBeenCalledTimes(1);

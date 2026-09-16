@@ -35,6 +35,11 @@ export interface AddCheckinResult {
   persisted: boolean;
 }
 
+export interface PublishGuideResult {
+  id: string;
+  persisted: boolean;
+}
+
 export type AppActions = {
   savePreferences: (preferences: Preferences) => void;
   toggleFavorite: (activityId: string) => void;
@@ -49,7 +54,7 @@ export type AppActions = {
   addCheckin: (checkin: Omit<Checkin, "id">) => AddCheckinResult;
   publishGuide: (
     guide: Omit<Guide, "id" | "author" | "createdByUser">,
-  ) => string;
+  ) => PublishGuideResult;
   toggleGuideSaved: (guideId: string) => void;
   setTheme: (theme: "system" | "light" | "dark") => void;
 };
@@ -198,7 +203,7 @@ export function AppStateProvider({
 
   const publishGuide = useCallback<AppActions["publishGuide"]>((guide) => {
     const id = createId("guide");
-    commitState((currentState) => ({
+    const persisted = commitState((currentState) => ({
       ...currentState,
       guides: [
         {
@@ -210,7 +215,7 @@ export function AppStateProvider({
         ...currentState.guides,
       ],
     }));
-    return id;
+    return { id, persisted };
   }, [commitState]);
 
   const toggleGuideSaved = useCallback((guideId: string) => {
