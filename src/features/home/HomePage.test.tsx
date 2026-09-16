@@ -21,6 +21,22 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+it("renders the home hero from the static image pack", () => {
+  renderApp("/");
+
+  const hero = screen.getByRole("img", {
+    name: "北京当代艺术街区里结伴散步的大学生",
+  });
+  expect(hero).toHaveAttribute(
+    "src",
+    expect.stringMatching(/\/images\/hero\/beijing-weekend\.webp$/),
+  );
+  expect(hero).not.toHaveAttribute(
+    "src",
+    expect.stringContaining("text_to_image"),
+  );
+});
+
 it("requires an activity type and budget before generating", async () => {
   const user = userEvent.setup();
   renderApp("/");
