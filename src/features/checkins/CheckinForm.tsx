@@ -2,6 +2,7 @@ import {
   CheckCircle,
   FloppyDisk,
   Star,
+  WarningCircle,
   X,
 } from "@phosphor-icons/react";
 import {
@@ -33,6 +34,7 @@ interface CheckinDraft {
 }
 
 type RequiredField = "activityId" | "date" | "note";
+type SubmissionStatus = "persistent" | "session-only";
 
 const errorMessages: Record<RequiredField, string> = {
   activityId: "请选择活动",
@@ -54,7 +56,7 @@ export function CheckinForm({
 }: CheckinFormProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const firstFieldRef = useRef<HTMLSelectElement>(null);
-  const successRef = useRef<HTMLDivElement>(null);
+  const submissionStatusRef = useRef<HTMLDivElement>(null);
   const [draft, setDraft] = useState<CheckinDraft>({
     activityId: initialActivityId,
     date: "",
@@ -65,7 +67,8 @@ export function CheckinForm({
   const [errors, setErrors] = useState<
     Partial<Record<RequiredField, string>>
   >({});
-  const [saved, setSaved] = useState(false);
+  const [submissionStatus, setSubmissionStatus] =
+    useState<SubmissionStatus | null>(null);
 
   useEffect(() => {
     const previouslyFocused = document.activeElement as HTMLElement | null;
@@ -80,10 +83,10 @@ export function CheckinForm({
   }, []);
 
   useEffect(() => {
-    if (saved) {
-      successRef.current?.focus();
+    if (submissionStatus) {
+      submissionStatusRef.current?.focus();
     }
-  }, [saved]);
+  }, [submissionStatus]);
 
   function updateField<Key extends keyof CheckinDraft>(
     field: Key,
@@ -103,7 +106,7 @@ export function CheckinForm({
 
   function submitCheckin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (saved) {
+    if (submissionStatus) {
       return;
     }
 
@@ -128,7 +131,7 @@ export function CheckinForm({
       return;
     }
 
-    onSave({
+    const result = onSave({
       activityId: draft.activityId,
       date: draft.date,
       note: draft.note.trim(),
@@ -139,7 +142,9 @@ export function CheckinForm({
       ...currentDraft,
       note: currentDraft.note.trim(),
     }));
-    setSaved(true);
+    setSubmissionStatus(
+      result.persisted ? "persistent" : "session-only",
+    );
   }
 
   function trapDialogFocus(event: KeyboardEvent<HTMLDivElement>) {
@@ -199,24 +204,46 @@ export function CheckinForm({
           </button>
         </header>
 
-        {saved ? (
+        {submissionStatus ? (
           <div
-            aria-label="打卡已保存"
-            className="checkin-save-status"
-            ref={successRef}
-            role="status"
+            aria-label={
+              submissionStatus === "persistent"
+                ? "打卡已保存"
+                : "打卡仅保留在本次会话"
+            }
+            className={`checkin-save-status${
+              submissionStatus === "session-only"
+                ? " checkin-save-status-warning"
+                : ""
+            }`}
+            ref={submissionStatusRef}
+            role={
+              submissionStatus === "persistent" ? "status" : "alert"
+            }
             tabIndex={-1}
           >
-            <CheckCircle aria-hidden="true" size={24} weight="fill" />
+            {submissionStatus === "persistent" ? (
+              <CheckCircle aria-hidden="true" size={24} weight="fill" />
+            ) : (
+              <WarningCircle aria-hidden="true" size={24} weight="fill" />
+            )}
             <div>
-              <strong>打卡已保存</strong>
-              <span>记录已留在这台设备上，关闭后可在历史中查看。</span>
+              <strong>
+                {submissionStatus === "persistent"
+                  ? "打卡已保存"
+                  : "打卡仅保留在本次会话"}
+              </strong>
+              <span>
+                {submissionStatus === "persistent"
+                  ? "记录已留在这台设备上，关闭后可在历史中查看。"
+                  : "浏览器存储写入失败。本次会话中仍可查看，刷新页面后会丢失。"}
+              </span>
             </div>
           </div>
         ) : null}
 
         <form className="checkin-form" noValidate onSubmit={submitCheckin}>
-          <fieldset disabled={saved}>
+          <fieldset disabled={submissionStatus !== null}>
             <div className="checkin-form-grid">
               <div className="checkin-form-field checkin-form-field-wide">
                 <label htmlFor="checkin-activity">活动</label>
@@ -353,13 +380,15 @@ export function CheckinForm({
 
           <div className="checkin-form-actions">
             <p>
-              {saved
+              {submissionStatus === "persistent"
                 ? "本次内容已经保存，请关闭窗口查看最新记录。"
-                : "打卡记录仅保存在当前浏览器。"}
+                : submissionStatus === "session-only"
+                  ? "记录未写入浏览器存储，请关闭窗口查看本次会话记录。"
+                  : "打卡记录仅保存在当前浏览器。"}
             </p>
             <button
               className="primary-action"
-              disabled={saved}
+              disabled={submissionStatus !== null}
               type="submit"
             >
               <FloppyDisk aria-hidden="true" size={20} weight="bold" />

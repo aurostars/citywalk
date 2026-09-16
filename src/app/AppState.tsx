@@ -2,8 +2,8 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -30,6 +30,11 @@ export {
 const persistenceWarning =
   "更改已保留在当前页面，但无法写入浏览器存储。";
 
+export interface AddCheckinResult {
+  id: string;
+  persisted: boolean;
+}
+
 export type AppActions = {
   savePreferences: (preferences: Preferences) => void;
   toggleFavorite: (activityId: string) => void;
@@ -41,7 +46,7 @@ export type AppActions = {
       "id" | "memberCount" | "joined" | "createdByUser"
     >,
   ) => string;
-  addCheckin: (checkin: Omit<Checkin, "id">) => string;
+  addCheckin: (checkin: Omit<Checkin, "id">) => AddCheckinResult;
   publishGuide: (
     guide: Omit<Guide, "id" | "author" | "createdByUser">,
   ) => string;
@@ -85,29 +90,34 @@ export function AppStateProvider({
   const [state, setState] = useState<AppState>(() =>
     initialState ?? (storage ? loadState(storage) : defaultAppState),
   );
+  const stateRef = useRef(state);
   const [storageWarning, setStorageWarning] = useState<string | null>(
     storage ? null : persistenceWarning,
   );
 
-  useEffect(() => {
-    if (!storage || !saveState(storage, state)) {
-      setStorageWarning(persistenceWarning);
-      return;
-    }
+  const commitState = useCallback(
+    (update: (currentState: AppState) => AppState) => {
+      const nextState = update(stateRef.current);
+      stateRef.current = nextState;
+      setState(nextState);
 
-    setStorageWarning(null);
-  }, [state, storage]);
+      const persisted = storage ? saveState(storage, nextState) : false;
+      setStorageWarning(persisted ? null : persistenceWarning);
+      return persisted;
+    },
+    [storage],
+  );
 
   const savePreferences = useCallback((preferences: Preferences) => {
-    setState((currentState) => ({
+    commitState((currentState) => ({
       ...currentState,
       onboardingComplete: true,
       preferences,
     }));
-  }, []);
+  }, [commitState]);
 
   const toggleFavorite = useCallback((activityId: string) => {
-    setState((currentState) => {
+    commitState((currentState) => {
       const isFavorite =
         currentState.favoriteActivityIds.includes(activityId);
       return {
@@ -119,10 +129,10 @@ export function AppStateProvider({
           : [...currentState.favoriteActivityIds, activityId],
       };
     });
-  }, []);
+  }, [commitState]);
 
   const joinTeam = useCallback((teamId: string) => {
-    setState((currentState) => ({
+    commitState((currentState) => ({
       ...currentState,
       teams: currentState.teams.map((team) => {
         if (
@@ -140,10 +150,10 @@ export function AppStateProvider({
         };
       }),
     }));
-  }, []);
+  }, [commitState]);
 
   const leaveTeam = useCallback((teamId: string) => {
-    setState((currentState) => ({
+    commitState((currentState) => ({
       ...currentState,
       teams: currentState.teams.map((team) => {
         if (team.id !== teamId || !team.joined) {
@@ -157,11 +167,11 @@ export function AppStateProvider({
         };
       }),
     }));
-  }, []);
+  }, [commitState]);
 
   const createTeam = useCallback<AppActions["createTeam"]>((team) => {
     const id = createId("team");
-    setState((currentState) => ({
+    commitState((currentState) => ({
       ...currentState,
       teams: [
         {
@@ -175,20 +185,20 @@ export function AppStateProvider({
       ],
     }));
     return id;
-  }, []);
+  }, [commitState]);
 
   const addCheckin = useCallback<AppActions["addCheckin"]>((checkin) => {
     const id = createId("checkin");
-    setState((currentState) => ({
+    const persisted = commitState((currentState) => ({
       ...currentState,
       checkins: [{ ...checkin, id }, ...currentState.checkins],
     }));
-    return id;
-  }, []);
+    return { id, persisted };
+  }, [commitState]);
 
   const publishGuide = useCallback<AppActions["publishGuide"]>((guide) => {
     const id = createId("guide");
-    setState((currentState) => ({
+    commitState((currentState) => ({
       ...currentState,
       guides: [
         {
@@ -201,10 +211,10 @@ export function AppStateProvider({
       ],
     }));
     return id;
-  }, []);
+  }, [commitState]);
 
   const toggleGuideSaved = useCallback((guideId: string) => {
-    setState((currentState) => ({
+    commitState((currentState) => ({
       ...currentState,
       guides: currentState.guides.map((guide) =>
         guide.id === guideId
@@ -212,11 +222,11 @@ export function AppStateProvider({
           : guide,
       ),
     }));
-  }, []);
+  }, [commitState]);
 
   const setTheme = useCallback((theme: ThemePreference) => {
-    setState((currentState) => ({ ...currentState, theme }));
-  }, []);
+    commitState((currentState) => ({ ...currentState, theme }));
+  }, [commitState]);
 
   const value = useMemo<AppStateContextValue>(
     () => ({

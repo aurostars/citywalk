@@ -63,6 +63,7 @@ function AppStateHarness() {
   } = useAppState();
   const [createdTeamId, setCreatedTeamId] = useState("");
   const [createdCheckinId, setCreatedCheckinId] = useState("");
+  const [checkinPersistence, setCheckinPersistence] = useState("");
   const [createdGuideId, setCreatedGuideId] = useState("");
 
   return (
@@ -70,6 +71,7 @@ function AppStateHarness() {
       <output aria-label="应用状态">{JSON.stringify(state)}</output>
       <output aria-label="新队伍 ID">{createdTeamId}</output>
       <output aria-label="新打卡 ID">{createdCheckinId}</output>
+      <output aria-label="打卡持久化结果">{checkinPersistence}</output>
       <output aria-label="新攻略 ID">{createdGuideId}</output>
       {persistenceWarning ? <p role="status">{persistenceWarning}</p> : null}
 
@@ -128,17 +130,19 @@ function AppStateHarness() {
         再次加入新队伍
       </button>
       <button
-        onClick={() =>
-          setCreatedCheckinId(
-            addCheckin({
-              activityId: "798-art-weekend",
-              date: "2026-09-19",
-              partySize: "pair",
-              rating: 5,
-              note: "展览动线清晰，下午人更多。",
-            }),
-          )
-        }
+        onClick={() => {
+          const result = addCheckin({
+            activityId: "798-art-weekend",
+            date: "2026-09-19",
+            partySize: "pair",
+            rating: 5,
+            note: "展览动线清晰，下午人更多。",
+          });
+          setCreatedCheckinId(result.id);
+          setCheckinPersistence(
+            result.persisted ? "persistent" : "session-only",
+          );
+        }}
         type="button"
       >
         添加打卡
@@ -342,6 +346,9 @@ it("adds a check-in and returns its ID", async () => {
     activityId: "798-art-weekend",
     rating: 5,
   });
+  expect(screen.getByLabelText("打卡持久化结果")).toHaveTextContent(
+    "persistent",
+  );
 });
 
 it("publishes a user guide first and toggles saved guides", async () => {
@@ -399,4 +406,25 @@ it("keeps state in React and exposes a warning when storage is unavailable", asy
   expect(
     await screen.findByText("更改已保留在当前页面，但无法写入浏览器存储。"),
   ).toHaveAttribute("role", "status");
+});
+
+it("reports a session-only check-in after one failed persistence attempt", async () => {
+  const user = userEvent.setup();
+  const setItem = vi
+    .spyOn(Storage.prototype, "setItem")
+    .mockImplementation(() => {
+      throw new DOMException("Storage unavailable", "QuotaExceededError");
+    });
+  renderStateHarness();
+
+  await user.click(screen.getByRole("button", { name: "添加打卡" }));
+
+  expect(readRenderedState().checkins[0]).toMatchObject({
+    activityId: "798-art-weekend",
+    rating: 5,
+  });
+  expect(screen.getByLabelText("打卡持久化结果")).toHaveTextContent(
+    "session-only",
+  );
+  expect(setItem).toHaveBeenCalledTimes(1);
 });

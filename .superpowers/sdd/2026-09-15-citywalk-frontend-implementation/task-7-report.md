@@ -83,3 +83,47 @@ Exit: `0` with no output.
 - Static scans found zero visible em dash or en dash characters and zero photo UI, image, upload, or persistence code in Task 7 production files.
 - All new icons come from Phosphor, every new surface uses 8px corners, and the history contains no nested card structure.
 - `README.md` and `.github/workflows/deploy.yml` were neither modified nor staged.
+
+## Fix Round 1
+
+- Kept the approved create-and-view-history scope; no edit action or editable-history behavior was added.
+- Replaced effect-driven persistence with a single AppState commit boundary that updates the in-memory snapshot, attempts `localStorage` once, and returns the outcome from `addCheckin`.
+- Reserved `打卡已保存` for confirmed writes. A throwing storage write now shows a focused `打卡仅保留在本次会话` alert inside the dialog, retains submitted values, prevents duplicate submission, and keeps explicit close available.
+- Preserved the existing public contracts and persistence behavior of preferences, favorites, teams, guides, and theme actions.
+
+RED command:
+
+```bash
+npm run test:run -- src/features/checkins/CheckinsPage.test.tsx src/app/app-state.test.tsx
+```
+
+Exit: `1`. Vitest reported `3 failed` tests: `addCheckin` did not expose persistence outcome, the throwing path attempted `setItem` twice across mount and submission, and the dialog still rendered `打卡已保存` instead of the required session-only alert.
+
+Focused GREEN rerun:
+
+```bash
+npm run test:run -- src/features/checkins/CheckinsPage.test.tsx src/app/app-state.test.tsx
+```
+
+Exit: `0`. Vitest reported `2 passed` files and `18 passed` tests.
+
+Full unit rerun:
+
+```bash
+npm run test:run
+```
+
+Exit: `0`. Vitest reported `11 passed` files and `86 passed` tests.
+
+Build rerun:
+
+```bash
+npm run build
+```
+
+Exit: `0`. TypeScript and Vite completed successfully; Vite transformed `4994` modules and retained the deferred non-blocking chunk-size warning for Task 9 route splitting.
+
+Additional checks:
+
+- `git diff --check`: exit `0` with no output.
+- Impeccable detector over `CheckinForm.tsx` and `index.css`: `[]`.

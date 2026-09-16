@@ -140,6 +140,59 @@ it("saves a persistent check-in and preserves the success state", async () => {
   });
 });
 
+it("keeps a failed write in the current session without announcing success", async () => {
+  const user = userEvent.setup();
+  const setItem = vi
+    .spyOn(Storage.prototype, "setItem")
+    .mockImplementation(() => {
+      throw new DOMException("Storage unavailable", "QuotaExceededError");
+    });
+  renderApp("/checkins");
+
+  await user.click(screen.getByRole("button", { name: "新增打卡" }));
+  await user.selectOptions(
+    screen.getByLabelText("活动"),
+    "798-art-weekend",
+  );
+  await user.type(screen.getByLabelText("日期"), "2026-09-19");
+  await user.selectOptions(screen.getByLabelText("同行人数"), "pair");
+  await user.click(screen.getByRole("radio", { name: "5 星" }));
+  await user.type(
+    screen.getByLabelText("打卡记录"),
+    "存储失败后仍保留的本次记录。",
+  );
+  await user.click(screen.getByRole("button", { name: "保存打卡" }));
+
+  const dialog = screen.getByRole("dialog", { name: "记录一次出发" });
+  const warning = within(dialog).getByRole("alert", {
+    name: "打卡仅保留在本次会话",
+  });
+  expect(warning).toBeVisible();
+  expect(warning).toHaveFocus();
+  expect(
+    within(dialog).queryByRole("status", { name: "打卡已保存" }),
+  ).not.toBeInTheDocument();
+  expect(screen.getByLabelText("活动")).toHaveValue("798-art-weekend");
+  expect(screen.getByLabelText("日期")).toHaveValue("2026-09-19");
+  expect(screen.getByLabelText("同行人数")).toHaveValue("pair");
+  expect(screen.getByRole("radio", { name: "5 星" })).toBeChecked();
+  expect(screen.getByLabelText("打卡记录")).toHaveValue(
+    "存储失败后仍保留的本次记录。",
+  );
+  expect(screen.getByRole("button", { name: "保存打卡" })).toBeDisabled();
+  expect(
+    screen.getByRole("button", { name: "关闭打卡窗口" }),
+  ).toBeEnabled();
+  expect(setItem).toHaveBeenCalledTimes(1);
+
+  await user.click(
+    screen.getByRole("button", { name: "关闭打卡窗口" }),
+  );
+  expect(
+    screen.getByRole("article", { name: "798 当代艺术周末打卡" }),
+  ).toHaveTextContent("存储失败后仍保留的本次记录。");
+});
+
 it("shows the newly saved check-in first after explicit close", async () => {
   const user = userEvent.setup();
   renderApp("/checkins", {

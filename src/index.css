@@ -2697,6 +2697,12 @@ main {
   color: var(--accent-ink);
 }
 
+.checkin-save-status-warning {
+  border-color: var(--ink);
+  background: var(--surface-strong);
+  color: var(--ink);
+}
+
 .checkin-save-status:focus-visible {
   outline: 3px solid var(--focus);
   outline-offset: 3px;
