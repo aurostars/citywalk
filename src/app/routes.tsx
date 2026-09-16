@@ -2,6 +2,7 @@ import type { RouteObject } from "react-router-dom";
 import { useRoutes } from "react-router-dom";
 import { AppShell } from "../components/AppShell";
 import { ActivityDetailPage } from "../features/activities/ActivityDetailPage";
+import { CheckinsPage } from "../features/checkins/CheckinsPage";
 import { HomePage } from "../features/home/HomePage";
 import { TeamsPage } from "../features/teams/TeamsPage";
 
@@ -43,13 +44,7 @@ export const appRoutes: RouteObject[] = [
       },
       {
         path: "checkins",
-        element: (
-          <RoutePlaceholder
-            description="把去过的地方和当天的心情留在自己的城市记录里。"
-            id="checkins"
-            title="留下城迹"
-          />
-        ),
+        element: <CheckinsPage />,
       },
       {
         path: "guides",
