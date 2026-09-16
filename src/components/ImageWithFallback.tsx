@@ -19,9 +19,9 @@ export function ImageWithFallback({
   src,
   width,
 }: ImageWithFallbackProps) {
-  const [failed, setFailed] = useState(false);
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
 
-  if (failed) {
+  if (failedSrc === src) {
     return (
       <div
         aria-label={`${fallbackLabel}图片暂不可用`}
@@ -42,7 +42,7 @@ export function ImageWithFallback({
       decoding="async"
       height={height}
       loading={loading}
-      onError={() => setFailed(true)}
+      onError={() => setFailedSrc(src)}
       src={src}
       width={width}
     />

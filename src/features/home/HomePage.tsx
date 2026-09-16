@@ -43,17 +43,20 @@ type HomeMode = "editing" | "loading" | "onboarding" | "results";
 
 function LoadingResults() {
   return (
-    <section
-      aria-label="正在生成周末计划"
-      className="results-loading"
-      role="status"
-    >
-      <span className="visually-hidden">
-        正在结合天气、预算和同行人数生成周末计划
-      </span>
-      <div className="skeleton skeleton-heading" aria-hidden="true" />
-      <div className="skeleton skeleton-summary" aria-hidden="true" />
-      <div className="skeleton-route" aria-hidden="true">
+    <section aria-hidden="true" className="results-loading">
+      <header className="results-masthead">
+        <div>
+          <p className="home-kicker skeleton">你的本期城市指南</p>
+          <h1 className="skeleton skeleton-heading">为你安排的北京周末</h1>
+          <p className="skeleton">
+            先从一条可执行路线出发，再决定组队、记录或继续读攻略。
+          </p>
+        </div>
+        <div className="edit-preferences skeleton">调整偏好</div>
+      </header>
+      <div className="skeleton skeleton-summary" />
+      <div className="skeleton skeleton-weather" />
+      <div className="skeleton-route">
         <div className="skeleton skeleton-route-copy" />
         <div className="skeleton skeleton-route-image" />
       </div>
@@ -65,6 +68,9 @@ export function HomePage() {
   const { savePreferences, state } = useAppState();
   const reduceMotion = useReducedMotion();
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const resultsHeadingRef = useRef<HTMLHeadingElement>(null);
+  const preferenceHeadingRef = useRef<HTMLHeadingElement>(null);
+  const pendingFocus = useRef(false);
   const [mode, setMode] = useState<HomeMode>(
     state.onboardingComplete ? "results" : "onboarding",
   );
@@ -76,6 +82,17 @@ export function HomePage() {
   );
   const [showRelaxed, setShowRelaxed] = useState(false);
   const [animateResults, setAnimateResults] = useState(false);
+
+  useEffect(() => {
+    if (!pendingFocus.current || mode === "loading") {
+      return;
+    }
+    const heading = mode === "results"
+      ? resultsHeadingRef.current
+      : preferenceHeadingRef.current;
+    heading?.focus();
+    pendingFocus.current = false;
+  }, [mode]);
 
   useEffect(
     () => () => {
@@ -123,19 +140,21 @@ export function HomePage() {
     };
 
     setShowRelaxed(false);
+    pendingFocus.current = true;
     setMode("loading");
     timeoutRef.current = setTimeout(() => {
       savePreferences(preferences);
       setAnimateResults(true);
       setMode("results");
       timeoutRef.current = null;
-    }, reduceMotion ? 0 : 240);
+    }, reduceMotion ? 0 : 400);
   }
 
   function editPreferences() {
     setDraftActivityTypes(state.preferences.activityTypes);
     setDraftBudget(state.preferences.budget);
     setAnimateResults(false);
+    pendingFocus.current = true;
     setMode("editing");
   }
 
@@ -155,139 +174,154 @@ export function HomePage() {
     animateResults && !reduceMotion
       ? { opacity: 1, y: 20 }
       : false;
+  const announcement = mode === "loading"
+    ? "正在结合天气、预算和同行人数生成周末计划"
+    : mode === "results"
+      ? displayedRecommendations.length > 0
+        ? `周末计划已生成，共推荐 ${displayedRecommendations.length} 个活动。`
+        : "这组条件暂时没有匹配，可调整偏好或查看相近活动。"
+      : "";
 
   return (
     <div className="home-page">
-      <AnimatePresence initial={false}>
-        {isPreferenceMode ? (
-          <motion.section
-            animate={{ opacity: 1, y: 0 }}
-            aria-labelledby="home-title"
-            className="onboarding-stage"
-            exit={preferenceExit}
-            initial={false}
-            key={mode}
-            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <div className="onboarding-copy">
-              <div className="opening-copy">
-                <p className="home-kicker">
-                  {mode === "editing" ? "调整本期偏好" : "北京周末编辑推荐"}
-                </p>
-                <h1 id="home-title">
-                  {mode === "editing"
-                    ? "换个方向，再排一次。"
-                    : "这个周末，换条路走。"}
-                </h1>
-                <p>
-                  选好兴趣和预算，我们会结合示例天气与同行人数排出一份可执行计划。
-                </p>
-              </div>
-
-              <PreferencePanel
-                activityTypes={draftActivityTypes}
-                budget={draftBudget}
-                isEditing={mode === "editing"}
-                onActivityTypesChange={setDraftActivityTypes}
-                onBudgetChange={setDraftBudget}
-                onSubmit={submitPreferences}
-              />
-            </div>
-
-            <figure className="onboarding-media">
-              <ImageWithFallback
-                alt="北京当代艺术街区里结伴散步的大学生"
-                className="onboarding-image"
-                fallbackLabel="北京周末街区"
-                height={930}
-                loading="eager"
-                src={heroImageUrl}
-                width={1240}
-              />
-              <figcaption>
-                <span>本周末示例天气</span>
-                <strong>多云 16-23°C</strong>
-                <small>适合室内外灵活安排</small>
-              </figcaption>
-            </figure>
-          </motion.section>
-        ) : mode === "loading" ? (
-          <LoadingResults key="loading" />
-        ) : (
-          <motion.div
-            animate={{ opacity: 1, y: 0 }}
-            className="results-stage"
-            initial={resultEnter}
-            key="results"
-            transition={{ duration: 0.36, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <header className="results-masthead">
-              <div>
-                <p className="home-kicker">你的本期城市指南</p>
-                <h1>为你安排的北京周末</h1>
-                <p>
-                  先从一条可执行路线出发，再决定组队、记录或继续读攻略。
-                </p>
-              </div>
-              <button
-                className="edit-preferences"
-                onClick={editPreferences}
-                type="button"
-              >
-                <PencilSimple aria-hidden="true" size={18} weight="bold" />
-                调整偏好
-              </button>
-            </header>
-
-            <section className="preference-summary" aria-label="当前偏好">
-              <div className="summary-copy">
-                <span>当前方向</span>
-                <strong>
-                  {state.preferences.activityTypes
-                    .map((type) => activityTypeLabels[type])
-                    .join("、")}
-                </strong>
-              </div>
-              <div className="summary-copy">
-                <span>每人预算</span>
-                <strong>{budgetLabels[state.preferences.budget]}</strong>
-              </div>
-              <fieldset className="party-size-control">
-                <legend>同行人数</legend>
-                <div className="selection-row">
-                  {partySizeOptions.map((option) => (
-                    <label className="selection-control" key={option.value}>
-                      <input
-                        checked={
-                          state.preferences.partySize === option.value
-                        }
-                        name="partySize"
-                        onChange={() => changePartySize(option.value)}
-                        type="radio"
-                        value={option.value}
-                      />
-                      <span>{option.label}</span>
-                    </label>
-                  ))}
+      <p
+        aria-atomic="true"
+        aria-label="周末计划状态"
+        className="visually-hidden"
+        role="status"
+      >{announcement}</p>
+      <div className="home-stage">
+        <AnimatePresence initial={false}>
+          {isPreferenceMode ? (
+            <motion.section
+              animate={{ opacity: 1, y: 0 }}
+              aria-labelledby="home-title"
+              className="onboarding-stage"
+              exit={preferenceExit}
+              initial={false}
+              key={mode}
+              transition={{ duration: reduceMotion ? 0 : 0.22, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <div className="onboarding-copy">
+                <div className="opening-copy">
+                  <p className="home-kicker">
+                    {mode === "editing" ? "调整本期偏好" : "北京周末编辑推荐"}
+                  </p>
+                  <h1 id="home-title" ref={preferenceHeadingRef} tabIndex={-1}>
+                    {mode === "editing"
+                      ? "换个方向，再排一次。"
+                      : "这个周末，换条路走。"}
+                  </h1>
+                  <p>
+                    选好兴趣和预算，我们会结合示例天气与同行人数排出一份可执行计划。
+                  </p>
                 </div>
-              </fieldset>
-            </section>
 
-            <RecommendationResults
-              activities={displayedRecommendations}
-              checkins={state.checkins}
-              guides={state.guides}
-              isRelaxed={
-                showRelaxed && strictRecommendations.length === 0
-              }
-              onShowRelaxed={() => setShowRelaxed(true)}
-              preferences={state.preferences}
-              teams={state.teams}
-              weather={weekendWeather}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+                <PreferencePanel
+                  activityTypes={draftActivityTypes}
+                  budget={draftBudget}
+                  isEditing={mode === "editing"}
+                  onActivityTypesChange={setDraftActivityTypes}
+                  onBudgetChange={setDraftBudget}
+                  onSubmit={submitPreferences}
+                />
+              </div>
+
+              <figure className="onboarding-media">
+                <ImageWithFallback
+                  alt="北京当代艺术街区里结伴散步的大学生"
+                  className="onboarding-image"
+                  fallbackLabel="北京周末街区"
+                  height={930}
+                  loading="eager"
+                  src={heroImageUrl}
+                  width={1240}
+                />
+                <figcaption>
+                  <span>本周末示例天气</span>
+                  <strong>多云 16-23°C</strong>
+                  <small>适合室内外灵活安排</small>
+                </figcaption>
+              </figure>
+            </motion.section>
+          ) : mode === "loading" ? (
+            <LoadingResults key="loading" />
+          ) : (
+            <motion.div
+              animate={{ opacity: 1, y: 0 }}
+              className="results-stage"
+              initial={resultEnter}
+              key="results"
+              transition={{ duration: reduceMotion ? 0 : 0.36, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <header className="results-masthead">
+                <div>
+                  <p className="home-kicker">你的本期城市指南</p>
+                  <h1 ref={resultsHeadingRef} tabIndex={-1}>为你安排的北京周末</h1>
+                  <p>
+                    先从一条可执行路线出发，再决定组队、记录或继续读攻略。
+                  </p>
+                </div>
+                <button
+                  className="edit-preferences"
+                  onClick={editPreferences}
+                  type="button"
+                >
+                  <PencilSimple aria-hidden="true" size={18} weight="bold" />
+                  调整偏好
+                </button>
+              </header>
+
+              <section className="preference-summary" aria-label="当前偏好">
+                <div className="summary-copy">
+                  <span>当前方向</span>
+                  <strong>
+                    {state.preferences.activityTypes
+                      .map((type) => activityTypeLabels[type])
+                      .join("、")}
+                  </strong>
+                </div>
+                <div className="summary-copy">
+                  <span>每人预算</span>
+                  <strong>{budgetLabels[state.preferences.budget]}</strong>
+                </div>
+                <fieldset className="party-size-control">
+                  <legend>同行人数</legend>
+                  <div className="selection-row">
+                    {partySizeOptions.map((option) => (
+                      <label className="selection-control" key={option.value}>
+                        <input
+                          checked={
+                            state.preferences.partySize === option.value
+                          }
+                          name="partySize"
+                          onChange={() => changePartySize(option.value)}
+                          type="radio"
+                          value={option.value}
+                        />
+                        <span>{option.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              </section>
+
+              <RecommendationResults
+                activities={displayedRecommendations}
+                checkins={state.checkins}
+                guides={state.guides}
+                isRelaxed={
+                  showRelaxed && strictRecommendations.length === 0
+                }
+                onShowRelaxed={() => setShowRelaxed(true)}
+                preferences={state.preferences}
+                teams={state.teams}
+                weather={weekendWeather}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

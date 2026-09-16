@@ -376,6 +376,25 @@ main {
   padding-block: 24px 88px;
 }
 
+.home-stage {
+  display: grid;
+  align-items: start;
+}
+
+.home-stage > * {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+
+.home-stage h1:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 5px;
+}
+
+.home-stage h1 {
+  scroll-margin-top: 90px;
+}
+
 .home-kicker,
 .section-label {
   margin: 0;
@@ -599,7 +618,7 @@ main {
 }
 
 .image-fallback {
-  min-height: 100%;
+  min-height: 0;
   align-content: center;
   padding: 24px;
   border-radius: 8px;
@@ -624,7 +643,7 @@ main {
 
 .results-loading {
   min-height: calc(100dvh - 117px);
-  padding-block: 38px;
+  padding-top: 26px;
 }
 
 .skeleton {
@@ -632,20 +651,27 @@ main {
   background: var(--skeleton);
 }
 
-.skeleton-heading {
-  width: min(38rem, 74%);
-  height: 76px;
+.results-loading .skeleton {
+  color: transparent;
+}
+
+.results-loading .home-kicker {
+  width: fit-content;
 }
 
 .skeleton-summary {
   width: 100%;
-  height: 80px;
-  margin-top: 32px;
+  height: 92px;
+}
+
+.skeleton-weather {
+  height: 84px;
+  margin-top: 18px;
 }
 
 .skeleton-route {
   display: grid;
-  min-height: 430px;
+  min-height: 480px;
   grid-template-columns: 0.82fr 1.18fr;
   gap: 1px;
   margin-top: 18px;
@@ -1220,6 +1246,18 @@ main {
     grid-template-columns: minmax(290px, 0.9fr) minmax(0, 1.1fr);
   }
 
+  .weather-summary {
+    grid-template-columns: minmax(190px, 0.7fr) minmax(0, 1fr);
+    gap: 16px 24px;
+  }
+
+  .weather-reason {
+    grid-column: 1 / -1;
+    padding: 12px 0 0;
+    border-top: 1px solid color-mix(in srgb, var(--accent-ink) 28%, transparent);
+    border-left: 0;
+  }
+
   .route-facts {
     grid-template-columns: 1fr 1fr;
   }
@@ -1315,7 +1353,8 @@ main {
     gap: 10px;
   }
 
-  .results-stage {
+  .results-stage,
+  .results-loading {
     padding-top: 14px;
   }
 
@@ -1427,8 +1466,12 @@ main {
     min-height: 240px !important;
   }
 
-  .skeleton-heading {
-    height: 58px;
+  .skeleton-summary {
+    height: 158px;
+  }
+
+  .skeleton-weather {
+    height: 174px;
   }
 
   .skeleton-route {
@@ -1464,6 +1507,33 @@ main {
 
   .route-facts {
     gap: 8px;
+  }
+}
+
+@media (max-width: 767px) and (max-height: 740px) {
+  .onboarding-stage {
+    gap: 12px;
+  }
+
+  .onboarding-media {
+    height: clamp(88px, calc(100dvh - 560px - env(safe-area-inset-bottom)), 180px);
+  }
+
+  .opening-copy h1 {
+    font-size: 2.25rem;
+  }
+
+  .preference-panel {
+    margin-top: 12px;
+  }
+
+  .preference-panel fieldset + fieldset {
+    margin-top: 10px;
+  }
+
+  .preference-action {
+    margin-top: 12px;
+    padding-top: 10px;
   }
 }
 

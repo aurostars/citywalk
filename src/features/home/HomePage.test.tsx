@@ -1,4 +1,4 @@
-import { fireEvent, screen, within } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { defaultAppState, type AppState } from "../../app/AppState";
 import { renderApp } from "../../test/renderApp";
@@ -37,7 +37,9 @@ it("reveals recommendations and supports editing saved preferences", async () =>
   await user.click(screen.getByRole("radio", { name: "100 元内" }));
   await user.click(screen.getByRole("button", { name: "生成周末计划" }));
 
-  expect(screen.getByRole("status", { name: "正在生成周末计划" })).toBeVisible();
+  expect(screen.getByRole("status", { name: "周末计划状态" })).toHaveTextContent(
+    "正在结合天气、预算和同行人数生成周末计划",
+  );
   expect(
     await screen.findByRole("heading", { name: "为你安排的北京周末" }),
   ).toBeVisible();
@@ -83,6 +85,7 @@ it("reranks recommendations when party size changes", async () => {
 
   await user.click(screen.getByRole("radio", { name: "一个人" }));
 
+  expect(screen.getByRole("radio", { name: "一个人" })).toHaveFocus();
   expect(
     within(screen.getByLabelText("首选活动")).getByRole("heading", {
       name: "潘家园旧物早市",
@@ -109,7 +112,7 @@ it("offers nearby matches without changing empty-result preferences", async () =
   expect(screen.getByRole("heading", { name: "亮马河水岸音乐现场" })).toBeVisible();
 });
 
-it("keeps media dimensions and names the activity when an image fails", () => {
+it("names the activity when an image fails", () => {
   renderApp(
     "/",
     completedState({
@@ -127,4 +130,58 @@ it("keeps media dimensions and names the activity when an image fails", () => {
   expect(
     screen.getByRole("img", { name: "798 当代艺术周末图片暂不可用" }),
   ).toBeVisible();
+});
+
+it.each([
+  { budget: "100 元内", announcement: /周末计划已生成/ },
+  { budget: "免费", announcement: /没有匹配/ },
+])("keeps keyboard context and announces generation for $budget", async ({
+  budget,
+  announcement,
+}) => {
+  const user = userEvent.setup();
+  renderApp("/");
+  const status = screen.getByRole("status", { name: "周末计划状态" });
+  expect(status).toBeEmptyDOMElement();
+
+  await user.click(screen.getByRole("checkbox", { name: "看展" }));
+  await user.click(screen.getByRole("radio", { name: budget }));
+  await user.tab();
+  expect(screen.getByRole("button", { name: "生成周末计划" })).toHaveFocus();
+  await user.keyboard("{Enter}");
+
+  const heading = await screen.findByRole("heading", {
+    name: "为你安排的北京周末",
+  });
+  await waitFor(() => expect(heading).toHaveFocus());
+  expect(screen.getByRole("status", { name: "周末计划状态" })).toBe(status);
+  expect(status).toHaveTextContent(announcement);
+
+  await user.tab();
+  expect(screen.getByRole("button", { name: "调整偏好" })).toHaveFocus();
+  await user.keyboard("{Enter}");
+  expect(screen.getByRole("heading", { name: "换个方向，再排一次。" })).toHaveFocus();
+  expect(status).toBeEmptyDOMElement();
+  await user.tab();
+  expect(screen.getByRole("checkbox", { name: "看展" })).toHaveFocus();
+});
+
+it("explains a partial party-size match without changing the lead ranking", () => {
+  renderApp(
+    "/",
+    completedState({
+      activityTypes: ["hike"],
+      budget: "free",
+      partySize: "solo",
+    }),
+  );
+
+  expect(
+    within(screen.getByLabelText("首选活动")).getByRole("heading", {
+      name: "温榆河公园骑行",
+    }),
+  ).toBeVisible();
+  const weather = screen.getByRole("region", { name: "本周末示例天气" });
+  expect(weather).toHaveTextContent("人数与活动建议不完全匹配");
+  expect(weather).not.toHaveTextContent("符合当前预算与同行人数");
 });

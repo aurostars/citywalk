@@ -85,7 +85,7 @@ export function RecommendationResults({
   if (!leadActivity) {
     return (
       <>
-        <WeatherSummary weather={weather} />
+        <WeatherSummary partySize={preferences.partySize} weather={weather} />
         <section className="empty-results" aria-labelledby="empty-title">
           <p>当前筛选保留不变</p>
           <h2 id="empty-title">这组条件暂时没有匹配</h2>
@@ -132,7 +132,11 @@ export function RecommendationResults({
 
   return (
     <>
-      <WeatherSummary leadActivity={leadActivity} weather={weather} />
+      <WeatherSummary
+        leadActivity={leadActivity}
+        partySize={preferences.partySize}
+        weather={weather}
+      />
 
       {isRelaxed ? (
         <p className="relaxed-notice" role="status">
