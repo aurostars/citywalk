@@ -11,6 +11,8 @@ export const activities: Activity[] = [
     indoor: true,
     suitablePartySizes: ["solo", "pair", "group"],
     weatherKinds: ["sunny", "cloudy", "rain"],
+    availableWeekdays: ["saturday", "sunday"],
+    startTime: "10:00",
     schedule: "周六至周日 10:00-18:00",
     durationMinutes: 180,
     imageUrl:
@@ -29,7 +31,9 @@ export const activities: Activity[] = [
     indoor: false,
     suitablePartySizes: ["pair", "group"],
     weatherKinds: ["sunny", "cloudy"],
-    schedule: "周六 11:00-18:00",
+    availableWeekdays: ["saturday"],
+    startTime: "13:00",
+    schedule: "周六 13:00-18:00",
     durationMinutes: 150,
     imageUrl:
       "https://copilot-cn.bytedance.net/api/ide/v1/text_to_image?prompt=Realistic%20editorial%20travel%20photograph%20of%20a%20weekend%20craft%20market%20near%20Beijing%20Drum%20Tower%2C%20hutong%20storefronts%2C%20young%20shoppers%2C%20clear%20autumn%20daylight%2C%20natural%20colors%2C%20no%20text&image_size=landscape_4_3",
@@ -47,6 +51,8 @@ export const activities: Activity[] = [
     indoor: false,
     suitablePartySizes: ["pair", "group"],
     weatherKinds: ["sunny", "cloudy"],
+    availableWeekdays: ["saturday"],
+    startTime: "18:30",
     schedule: "周六 18:30-20:30",
     durationMinutes: 120,
     imageUrl:
@@ -65,6 +71,8 @@ export const activities: Activity[] = [
     indoor: true,
     suitablePartySizes: ["solo", "pair", "group"],
     weatherKinds: ["sunny", "cloudy", "rain"],
+    availableWeekdays: ["sunday"],
+    startTime: "14:30",
     schedule: "周日 14:30-16:30",
     durationMinutes: 120,
     imageUrl:
@@ -83,7 +91,9 @@ export const activities: Activity[] = [
     indoor: false,
     suitablePartySizes: ["solo", "pair", "group"],
     weatherKinds: ["sunny", "cloudy"],
-    schedule: "周日 08:00-12:00",
+    availableWeekdays: ["saturday"],
+    startTime: "08:00",
+    schedule: "周六 08:00-12:00",
     durationMinutes: 180,
     imageUrl:
       "https://copilot-cn.bytedance.net/api/ide/v1/text_to_image?prompt=Realistic%20editorial%20travel%20photograph%20of%20Panjiayuan%20flea%20market%20in%20Beijing%2C%20covered%20stalls%20with%20vintage%20objects%20and%20books%2C%20morning%20shoppers%2C%20warm%20natural%20light%2C%20no%20text&image_size=landscape_4_3",
@@ -101,6 +111,8 @@ export const activities: Activity[] = [
     indoor: true,
     suitablePartySizes: ["pair", "group"],
     weatherKinds: ["sunny", "cloudy", "rain"],
+    availableWeekdays: ["saturday", "sunday"],
+    startTime: "10:00",
     schedule: "周六至周日 10:00-17:00",
     durationMinutes: 150,
     imageUrl:
@@ -119,6 +131,8 @@ export const activities: Activity[] = [
     indoor: false,
     suitablePartySizes: ["solo", "pair", "group"],
     weatherKinds: ["sunny", "cloudy"],
+    availableWeekdays: ["sunday"],
+    startTime: "07:30",
     schedule: "周日 07:30-11:30",
     durationMinutes: 240,
     imageUrl:
@@ -137,6 +151,8 @@ export const activities: Activity[] = [
     indoor: false,
     suitablePartySizes: ["pair", "group"],
     weatherKinds: ["sunny", "cloudy"],
+    availableWeekdays: ["saturday"],
+    startTime: "09:00",
     schedule: "周六 09:00-12:30",
     durationMinutes: 210,
     imageUrl:

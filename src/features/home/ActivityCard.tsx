@@ -78,6 +78,7 @@ export function ActivityCard({
           <Link
             aria-label={`查看${activity.title}详情`}
             className="text-action"
+            state={{ fromHome: true }}
             to={`/activity/${activity.id}`}
           >
             查看活动

@@ -78,7 +78,7 @@ function CheckinRow({ checkin }: { checkin: Checkin }) {
 }
 
 export function CheckinsPage() {
-  const { addCheckin, persistenceWarning, state } = useAppState();
+  const { addCheckin, state } = useAppState();
   const [searchParams] = useSearchParams();
   const [isCreating, setIsCreating] = useState(false);
   const requestedActivityId = searchParams.get("activity") ?? "";
@@ -144,12 +144,6 @@ export function CheckinsPage() {
           </div>
         )}
       </section>
-
-      {persistenceWarning ? (
-        <p className="detail-persistence-warning" role="status">
-          {persistenceWarning}
-        </p>
-      ) : null}
 
       {isCreating ? (
         <CheckinForm

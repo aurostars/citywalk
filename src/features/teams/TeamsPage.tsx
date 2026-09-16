@@ -134,7 +134,6 @@ export function TeamsPage() {
     createTeam,
     joinTeam,
     leaveTeam,
-    persistenceWarning,
     state,
   } = useAppState();
   const [searchParams] = useSearchParams();
@@ -187,12 +186,6 @@ export function TeamsPage() {
           ))}
         </div>
       </section>
-
-      {persistenceWarning ? (
-        <p className="detail-persistence-warning" role="status">
-          {persistenceWarning}
-        </p>
-      ) : null}
 
       {isCreating ? (
         <TeamForm

@@ -1,6 +1,7 @@
 import { MapPin } from "@phosphor-icons/react";
 import { useRef } from "react";
 import { Link, NavLink, Outlet } from "react-router-dom";
+import { useAppState } from "../app/AppState";
 import { BottomNav } from "./BottomNav";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -13,6 +14,7 @@ const navigationItems = [
 
 export function AppShell() {
   const mainContentRef = useRef<HTMLElement>(null);
+  const { persistenceWarning } = useAppState();
 
   return (
     <div className="app-shell">
@@ -33,6 +35,13 @@ export function AppShell() {
           <span className="city-label" aria-label="当前城市：北京">
             <MapPin aria-hidden="true" size={18} weight="bold" />
             北京
+          </span>
+          <span
+            aria-label="示例数据：活动、路线、天气、队伍和攻略均为体验数据"
+            className="sample-data-label"
+            title="活动、路线、天气、队伍和攻略均为体验数据"
+          >
+            示例数据
           </span>
 
           <nav className="desktop-nav" aria-label="主导航">
@@ -59,6 +68,15 @@ export function AppShell() {
 
       <main id="main-content" ref={mainContentRef} tabIndex={-1}>
         <div className="shell-container">
+          {persistenceWarning ? (
+            <p
+              aria-label="浏览器存储提示"
+              className="shell-persistence-warning"
+              role="status"
+            >
+              {persistenceWarning}
+            </p>
+          ) : null}
           <Outlet />
         </div>
       </main>

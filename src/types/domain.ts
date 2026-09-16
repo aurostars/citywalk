@@ -2,6 +2,7 @@ export type ActivityType = "exhibition" | "market" | "show" | "hike";
 export type Budget = "free" | "under-100" | "100-300";
 export type PartySize = "solo" | "pair" | "group";
 export type WeatherKind = "sunny" | "cloudy" | "rain";
+export type WeekendDay = "saturday" | "sunday";
 
 export interface Preferences {
   activityTypes: ActivityType[];
@@ -19,6 +20,8 @@ export interface Activity {
   indoor: boolean;
   suitablePartySizes: PartySize[];
   weatherKinds: WeatherKind[];
+  availableWeekdays: WeekendDay[];
+  startTime: string;
   schedule: string;
   durationMinutes: number;
   imageUrl: string;

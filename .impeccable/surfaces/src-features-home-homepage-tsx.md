@@ -39,6 +39,7 @@ The first-visit preference panel transforms in place into a personalized Beijing
 
 ## Approved Composition
 
+- Approval key: `user-approved:editorial-guide+progressive-home:2026-09-15`
 - Visual direction: `editorial-guide`
 - Interaction direction: `progressive-home`
 - Approved companion source: `/Users/bytedance/Downloads/github/citywalk/.superpowers/brainstorm/92601-1789477726/content/visual-direction.html`

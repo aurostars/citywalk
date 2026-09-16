@@ -6,6 +6,10 @@ beforeEach(() => {
   localStorage.clear();
 });
 
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
 it("shows fixture-derived activity facts and persists favorite state", async () => {
   const user = userEvent.setup();
   renderApp("/activity/798-art-weekend");
@@ -67,6 +71,28 @@ it("links the activity into team and check-in planning", () => {
     "href",
     "/checkins?activity=798-art-weekend",
   );
+});
+
+it("keeps a favorite in session and shows the shell warning when storage fails", async () => {
+  const user = userEvent.setup();
+  const setItem = vi
+    .spyOn(Storage.prototype, "setItem")
+    .mockImplementation(() => {
+      throw new DOMException("Storage unavailable", "QuotaExceededError");
+    });
+  renderApp("/activity/798-art-weekend");
+
+  await user.click(screen.getByRole("button", { name: "收藏活动" }));
+
+  expect(
+    screen.getByRole("button", { name: "取消收藏" }),
+  ).toHaveAttribute("aria-pressed", "true");
+  expect(
+    screen.getByRole("status", { name: "浏览器存储提示" }),
+  ).toHaveTextContent(
+    "更改已保留在当前页面，但无法写入浏览器存储。",
+  );
+  expect(setItem).toHaveBeenCalledTimes(1);
 });
 
 it("offers a useful way back for an unknown activity", () => {

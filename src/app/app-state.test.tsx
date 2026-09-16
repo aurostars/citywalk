@@ -63,6 +63,7 @@ function AppStateHarness() {
     toggleGuideSaved,
   } = useAppState();
   const [createdTeamId, setCreatedTeamId] = useState("");
+  const [teamPersistence, setTeamPersistence] = useState("");
   const [createdCheckinId, setCreatedCheckinId] = useState("");
   const [checkinPersistence, setCheckinPersistence] = useState("");
   const [createdGuideId, setCreatedGuideId] = useState("");
@@ -72,6 +73,7 @@ function AppStateHarness() {
     <>
       <output aria-label="应用状态">{JSON.stringify(state)}</output>
       <output aria-label="新队伍 ID">{createdTeamId}</output>
+      <output aria-label="队伍持久化结果">{teamPersistence}</output>
       <output aria-label="新打卡 ID">{createdCheckinId}</output>
       <output aria-label="打卡持久化结果">{checkinPersistence}</output>
       <output aria-label="新攻略 ID">{createdGuideId}</output>
@@ -109,18 +111,20 @@ function AppStateHarness() {
         退出队伍
       </button>
       <button
-        onClick={() =>
-          setCreatedTeamId(
-            createTeam({
-              activityId: "798-art-weekend",
-              leader: "我",
-              departureTime: "2026-09-19T10:00",
-              meetingPoint: "798 艺术区南门",
-              capacity: 4,
-              note: "一起看展，中午附近吃饭",
-            }),
-          )
-        }
+        onClick={() => {
+          const result = createTeam({
+            activityId: "798-art-weekend",
+            leader: "我",
+            departureTime: "2026-09-19T10:00",
+            meetingPoint: "798 艺术区南门",
+            capacity: 4,
+            note: "一起看展，中午附近吃饭",
+          });
+          setCreatedTeamId(result.id);
+          setTeamPersistence(
+            result.persisted ? "persistent" : "session-only",
+          );
+        }}
         type="button"
       >
         创建队伍
@@ -340,6 +344,9 @@ it("creates a joined user-owned team without double counting a later join", asyn
     memberCount: 1,
     createdByUser: true,
   });
+  expect(screen.getByLabelText("队伍持久化结果")).toHaveTextContent(
+    "persistent",
+  );
 
   await user.click(
     screen.getByRole("button", { name: "再次加入新队伍" }),
@@ -349,6 +356,30 @@ it("creates a joined user-owned team without double counting a later join", asyn
     joined: true,
     memberCount: 1,
   });
+});
+
+it("reports a session-only team after one failed persistence attempt", async () => {
+  const user = userEvent.setup();
+  const setItem = vi
+    .spyOn(Storage.prototype, "setItem")
+    .mockImplementation(() => {
+      throw new DOMException("Storage unavailable", "QuotaExceededError");
+    });
+  renderStateHarness();
+
+  await user.click(screen.getByRole("button", { name: "创建队伍" }));
+
+  const createdId = screen.getByLabelText("新队伍 ID").textContent ?? "";
+  expect(createdId).toMatch(/^team-/);
+  expect(readRenderedState().teams[0]).toMatchObject({
+    id: createdId,
+    note: "一起看展，中午附近吃饭",
+    createdByUser: true,
+  });
+  expect(screen.getByLabelText("队伍持久化结果")).toHaveTextContent(
+    "session-only",
+  );
+  expect(setItem).toHaveBeenCalledTimes(1);
 });
 
 it("adds a check-in and returns its ID", async () => {

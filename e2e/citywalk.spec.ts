@@ -157,6 +157,36 @@ test("an activity can be favorited from detail and restored", async ({
   ).toHaveAttribute("aria-pressed", "true");
 });
 
+test("activity detail opens at top and returns to the prior Home scroll", async ({
+  page,
+}) => {
+  await page.getByRole("checkbox", { name: "逛市集" }).check();
+  await page.getByRole("radio", { name: "100 元内" }).check();
+  await page.getByRole("button", { name: "生成周末计划" }).click();
+  const detailLink = page.getByRole("link", {
+    name: "查看潘家园旧物早市详情",
+  });
+  await detailLink.scrollIntoViewIfNeeded();
+  const homeScrollY = await page.evaluate(() => window.scrollY);
+  expect(homeScrollY).toBeGreaterThan(0);
+
+  await detailLink.click();
+  await expect(
+    page.getByRole("heading", { name: "潘家园旧物早市" }),
+  ).toBeVisible();
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+
+  await page.getByRole("link", { name: "返回周末推荐" }).click();
+  await expect(
+    page.getByRole("heading", { name: "为你安排的北京周末" }),
+  ).toBeVisible();
+  await expect
+    .poll(async () =>
+      Math.abs((await page.evaluate(() => window.scrollY)) - homeScrollY)
+    )
+    .toBeLessThanOrEqual(2);
+});
+
 test("team query preselects an activity and a created team can be left", async ({
   page,
 }) => {
@@ -165,7 +195,7 @@ test("team query preselects an activity and a created team can be left", async (
 
   const dialog = page.getByRole("dialog", { name: "创建周末队伍" });
   await expect(dialog.getByLabel("活动")).toHaveValue("798-art-weekend");
-  await dialog.getByLabel("出发时间").fill("2026-09-21T10:30");
+  await dialog.getByLabel("出发时间").fill("2026-09-19T10:30");
   await dialog.getByLabel("集合点").fill("798 艺术区南门");
   await dialog
     .getByLabel("队伍说明")
@@ -174,10 +204,14 @@ test("team query preselects an activity and a created team can be left", async (
 
   await expect(dialog.getByText("队伍已创建")).toBeVisible();
   await dialog.getByRole("button", { name: "查看我的队伍" }).click();
+  await page.reload({ waitUntil: "domcontentloaded" });
   const createdTeam = page
     .getByRole("article", { name: "798 当代艺术周末组队" })
     .first();
   await expect(createdTeam).toContainText("我发起");
+  await expect(createdTeam).toContainText(
+    "先看主展，再一起整理周末照片。",
+  );
   await createdTeam.getByRole("button", { name: "退出队伍" }).click();
   await expect(
     createdTeam.getByRole("button", { name: "加入队伍" }),
@@ -205,6 +239,7 @@ test("check-in query preselects an activity and keeps success until confirmation
     dialog.getByRole("button", { name: "保存打卡" }),
   ).toBeDisabled();
   await dialog.getByRole("button", { name: "关闭打卡窗口" }).click();
+  await page.reload({ waitUntil: "domcontentloaded" });
   await expect(
     page.getByRole("article", { name: "798 当代艺术周末打卡" }),
   ).toContainText("雨后园区很安静");
@@ -253,6 +288,10 @@ test("guides can be filtered, saved, published, and explicitly confirmed", async
   await expect(
     page.getByRole("article", { name: "雨后逛 798 的半日顺序" }),
   ).toContainText("我的分享");
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await expect(
+    page.getByRole("article", { name: "雨后逛 798 的半日顺序" }),
+  ).toContainText("我的分享");
 });
 
 test("theme choice updates the document and persists across reloads", async ({
@@ -287,6 +326,60 @@ test("mobile navigation reaches every primary section", async ({ page }) => {
     await expect(page).toHaveURL(new RegExp(`${hash.replace("/", "\\/")}$`));
     await expect(page.getByRole("heading", { name: heading })).toBeVisible();
   }
+});
+
+test("small-phone onboarding keeps compact validation and action in the first viewport", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 667 });
+  await page.reload({ waitUntil: "domcontentloaded" });
+
+  const validation = page.getByText("请选择活动类型和预算后继续。");
+  await expect(validation).toBeVisible();
+  await page.getByRole("checkbox", { name: "看展" }).check();
+  await page.getByRole("radio", { name: "100 元内" }).check();
+
+  const positions = await page.evaluate(() => {
+    const action = document.querySelector(".preference-action");
+    const navigation = document.querySelector(".bottom-nav");
+    if (!action || !navigation) {
+      return null;
+    }
+    return {
+      actionBottom: action.getBoundingClientRect().bottom,
+      navigationTop: navigation.getBoundingClientRect().top,
+    };
+  });
+  expect(positions).not.toBeNull();
+  expect(positions?.actionBottom).toBeLessThanOrEqual(
+    positions?.navigationTop ?? 0,
+  );
+});
+
+test("mobile results reveal a material portion of lead media above navigation", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await generateWeekendPlan(page);
+
+  const visibleLeadMedia = await page.evaluate(() => {
+    const image = document.querySelector(".lead-activity-image");
+    const navigation = document.querySelector(".bottom-nav");
+    if (!image || !navigation) {
+      return null;
+    }
+    const imageBounds = image.getBoundingClientRect();
+    const navigationTop = navigation.getBoundingClientRect().top;
+    return Math.max(
+      0,
+      Math.min(imageBounds.bottom, navigationTop) -
+        Math.max(imageBounds.top, 0),
+    );
+  });
+
+  expect(visibleLeadMedia).not.toBeNull();
+  expect(visibleLeadMedia).toBeGreaterThanOrEqual(160);
 });
 
 test("mobile interactive controls provide 44 pixel touch targets", async ({

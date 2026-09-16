@@ -6,6 +6,10 @@ beforeEach(() => {
   localStorage.clear();
 });
 
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
 it("renders fixture details and joins and leaves an available team", async () => {
   const user = userEvent.setup();
   renderApp("/teams");
@@ -98,6 +102,15 @@ it("keeps the creation dialog open after success until explicit close", async ()
   await user.click(screen.getByRole("button", { name: "创建队伍" }));
 
   expect(screen.getByRole("status")).toHaveTextContent("队伍已创建");
+  expect(screen.getByLabelText("活动")).toHaveValue("798-art-weekend");
+  expect(screen.getByLabelText("出发时间")).toHaveValue(
+    "2026-09-19T10:00",
+  );
+  expect(screen.getByLabelText("集合点")).toHaveValue("798 艺术区南门");
+  expect(screen.getByLabelText("人数上限")).toHaveValue("4");
+  expect(screen.getByLabelText("队伍说明")).toHaveValue(
+    "一起看展，中午附近吃饭",
+  );
   expect(
     screen.getByRole("button", { name: "查看我的队伍" }),
   ).toHaveFocus();
@@ -108,6 +121,74 @@ it("keeps the creation dialog open after success until explicit close", async ()
     screen.getByRole("button", { name: "关闭创建窗口" }),
   );
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+});
+
+it("rejects a departure weekday outside the selected activity schedule", async () => {
+  const user = userEvent.setup();
+  renderApp("/teams?activity=798-art-weekend");
+
+  await user.click(screen.getByRole("button", { name: "发起队伍" }));
+  await user.type(
+    screen.getByLabelText("出发时间"),
+    "2026-09-21T10:30",
+  );
+  await user.type(screen.getByLabelText("集合点"), "798 艺术区南门");
+  await user.type(screen.getByLabelText("队伍说明"), "周一出发测试");
+  await user.click(screen.getByRole("button", { name: "创建队伍" }));
+
+  expect(screen.getByLabelText("出发时间")).toBeInvalid();
+  expect(screen.getByLabelText("出发时间")).toHaveFocus();
+  expect(
+    screen.getByText("所选活动仅在周六、周日开放，请调整出发日期"),
+  ).toBeVisible();
+  expect(screen.queryByText("队伍已创建")).not.toBeInTheDocument();
+});
+
+it("keeps a failed team creation in session with an explicit warning", async () => {
+  const user = userEvent.setup();
+  const setItem = vi
+    .spyOn(Storage.prototype, "setItem")
+    .mockImplementation(() => {
+      throw new DOMException("Storage unavailable", "QuotaExceededError");
+    });
+  renderApp("/teams?activity=798-art-weekend");
+
+  await user.click(screen.getByRole("button", { name: "发起队伍" }));
+  await user.type(
+    screen.getByLabelText("出发时间"),
+    "2026-09-19T10:00",
+  );
+  await user.type(screen.getByLabelText("集合点"), "798 艺术区南门");
+  await user.type(
+    screen.getByLabelText("队伍说明"),
+    "只在本次会话保留的队伍",
+  );
+  await user.click(screen.getByRole("button", { name: "创建队伍" }));
+
+  const dialog = screen.getByRole("dialog", { name: "创建周末队伍" });
+  expect(
+    within(dialog).getByRole("alert", {
+      name: "队伍仅保留在本次会话",
+    }),
+  ).toBeVisible();
+  expect(
+    within(dialog).queryByRole("status", { name: "队伍已创建" }),
+  ).not.toBeInTheDocument();
+  expect(screen.getByLabelText("活动")).toHaveValue("798-art-weekend");
+  expect(screen.getByLabelText("出发时间")).toHaveValue(
+    "2026-09-19T10:00",
+  );
+  expect(screen.getByLabelText("集合点")).toHaveValue("798 艺术区南门");
+  expect(screen.getByLabelText("队伍说明")).toHaveValue(
+    "只在本次会话保留的队伍",
+  );
+  expect(
+    screen.getByRole("button", { name: "创建队伍" }),
+  ).toBeDisabled();
+  expect(
+    screen.getByRole("button", { name: "查看我的队伍" }),
+  ).toBeEnabled();
+  expect(setItem).toHaveBeenCalledTimes(1);
 });
 
 it("shows a created team as joined with one member", async () => {

@@ -1,6 +1,7 @@
 import {
   CheckCircle,
   UsersThree,
+  WarningCircle,
   X,
 } from "@phosphor-icons/react";
 import {
@@ -11,7 +12,10 @@ import {
   type KeyboardEvent,
 } from "react";
 import type { AppActions } from "../../app/AppState";
-import type { Activity } from "../../types/domain";
+import type {
+  Activity,
+  WeekendDay,
+} from "../../types/domain";
 
 interface TeamFormProps {
   activities: Activity[];
@@ -33,6 +37,7 @@ type RequiredField =
   | "departureTime"
   | "meetingPoint"
   | "note";
+type SubmissionStatus = "persistent" | "session-only";
 
 const errorMessages: Record<RequiredField, string> = {
   activityId: "请选择活动",
@@ -47,6 +52,28 @@ const fieldIds: Record<RequiredField, string> = {
   meetingPoint: "team-meeting-point",
   note: "team-note",
 };
+
+const weekdayLabels: Record<WeekendDay, string> = {
+  saturday: "周六",
+  sunday: "周日",
+};
+
+function getWeekendDay(departureTime: string): WeekendDay | null {
+  const [datePart = ""] = departureTime.split("T");
+  const [year, month, day] = datePart.split("-").map(Number);
+  if (!year || !month || !day) {
+    return null;
+  }
+
+  const weekday = new Date(year, month - 1, day).getDay();
+  if (weekday === 6) {
+    return "saturday";
+  }
+  if (weekday === 0) {
+    return "sunday";
+  }
+  return null;
+}
 
 export function TeamForm({
   activities,
@@ -67,7 +94,8 @@ export function TeamForm({
   const [errors, setErrors] = useState<
     Partial<Record<RequiredField, string>>
   >({});
-  const [created, setCreated] = useState(false);
+  const [submissionStatus, setSubmissionStatus] =
+    useState<SubmissionStatus | null>(null);
 
   useEffect(() => {
     const previouslyFocused = document.activeElement as HTMLElement | null;
@@ -82,10 +110,10 @@ export function TeamForm({
   }, []);
 
   useEffect(() => {
-    if (created) {
+    if (submissionStatus) {
       successButtonRef.current?.focus();
     }
-  }, [created]);
+  }, [submissionStatus]);
 
   function updateField(field: keyof TeamDraft, value: string) {
     setDraft((currentDraft) => ({
@@ -102,6 +130,9 @@ export function TeamForm({
 
   function submitTeam(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submissionStatus) {
+      return;
+    }
     const nextErrors: Partial<Record<RequiredField, string>> = {};
 
     (Object.keys(errorMessages) as RequiredField[]).forEach((field) => {
@@ -109,6 +140,24 @@ export function TeamForm({
         nextErrors[field] = errorMessages[field];
       }
     });
+    const activity = activities.find(
+      ({ id }) => id === draft.activityId,
+    );
+    const departureDay = getWeekendDay(draft.departureTime);
+    if (
+      activity &&
+      draft.departureTime &&
+      (
+        departureDay === null ||
+        !activity.availableWeekdays.includes(departureDay)
+      )
+    ) {
+      const availableDays = activity.availableWeekdays
+        .map((day) => weekdayLabels[day])
+        .join("、");
+      nextErrors.departureTime =
+        `所选活动仅在${availableDays}开放，请调整出发日期`;
+    }
 
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) {
@@ -123,7 +172,7 @@ export function TeamForm({
       return;
     }
 
-    onCreate({
+    const result = onCreate({
       activityId: draft.activityId,
       leader: "我",
       departureTime: draft.departureTime,
@@ -131,7 +180,14 @@ export function TeamForm({
       capacity: Number(draft.capacity),
       note: draft.note.trim(),
     });
-    setCreated(true);
+    setDraft((currentDraft) => ({
+      ...currentDraft,
+      meetingPoint: currentDraft.meetingPoint.trim(),
+      note: currentDraft.note.trim(),
+    }));
+    setSubmissionStatus(
+      result.persisted ? "persistent" : "session-only",
+    );
   }
 
   function trapDialogFocus(event: KeyboardEvent<HTMLDivElement>) {
@@ -187,29 +243,43 @@ export function TeamForm({
           </button>
         </header>
 
-        {created ? (
+        {submissionStatus ? (
           <div
-            aria-atomic="true"
-            className="team-form-success"
-            role="status"
+            aria-label={
+              submissionStatus === "persistent"
+                ? "队伍已创建"
+                : "队伍仅保留在本次会话"
+            }
+            className={`team-create-status${
+              submissionStatus === "session-only"
+                ? " team-create-status-warning"
+                : ""
+            }`}
+            role={
+              submissionStatus === "persistent" ? "status" : "alert"
+            }
           >
-            <CheckCircle aria-hidden="true" size={48} weight="fill" />
-            <p className="section-label">队伍已创建</p>
-            <h3>你已经在队伍里</h3>
-            <span>
-              当前人数从你开始计算，队伍会保存在这台设备上。
-            </span>
-            <button
-              className="primary-action"
-              onClick={onClose}
-              ref={successButtonRef}
-              type="button"
-            >
-              查看我的队伍
-            </button>
+            {submissionStatus === "persistent" ? (
+              <CheckCircle aria-hidden="true" size={24} weight="fill" />
+            ) : (
+              <WarningCircle aria-hidden="true" size={24} weight="fill" />
+            )}
+            <div>
+              <strong>
+                {submissionStatus === "persistent"
+                  ? "队伍已创建"
+                  : "队伍仅保留在本次会话"}
+              </strong>
+              <span>
+                {submissionStatus === "persistent"
+                  ? "队伍已保存在这台设备上，当前人数从你开始计算。"
+                  : "浏览器存储写入失败。本次会话中仍可查看，刷新页面后会丢失。"}
+              </span>
+            </div>
           </div>
-        ) : (
-          <form className="team-form" noValidate onSubmit={submitTeam}>
+        ) : null}
+
+        <form className="team-form" noValidate onSubmit={submitTeam}>
             <div className="team-form-field team-form-field-wide">
               <label htmlFor="team-activity">活动</label>
               <select
@@ -217,6 +287,7 @@ export function TeamForm({
                   errors.activityId ? "team-activity-error" : undefined
                 }
                 aria-invalid={Boolean(errors.activityId)}
+                disabled={submissionStatus !== null}
                 id="team-activity"
                 onChange={(event) =>
                   updateField("activityId", event.target.value)
@@ -247,6 +318,7 @@ export function TeamForm({
                     : undefined
                 }
                 aria-invalid={Boolean(errors.departureTime)}
+                disabled={submissionStatus !== null}
                 id="team-departure"
                 onChange={(event) =>
                   updateField("departureTime", event.target.value)
@@ -264,6 +336,7 @@ export function TeamForm({
             <div className="team-form-field">
               <label htmlFor="team-capacity">人数上限</label>
               <select
+                disabled={submissionStatus !== null}
                 id="team-capacity"
                 onChange={(event) =>
                   updateField("capacity", event.target.value)
@@ -287,6 +360,7 @@ export function TeamForm({
                     : undefined
                 }
                 aria-invalid={Boolean(errors.meetingPoint)}
+                disabled={submissionStatus !== null}
                 id="team-meeting-point"
                 onChange={(event) =>
                   updateField("meetingPoint", event.target.value)
@@ -312,6 +386,7 @@ export function TeamForm({
                   errors.note ? "team-note-error" : "team-note-help"
                 }
                 aria-invalid={Boolean(errors.note)}
+                disabled={submissionStatus !== null}
                 id="team-note"
                 onChange={(event) => updateField("note", event.target.value)}
                 placeholder="说明大致安排、同行节奏或需要准备的物品"
@@ -331,15 +406,32 @@ export function TeamForm({
 
             <div className="team-form-actions">
               <p>
-                创建后你会成为队长，并作为第 1 位成员加入。
+                {submissionStatus === "persistent"
+                  ? "队伍已经保存，请关闭窗口查看我的队伍。"
+                  : submissionStatus === "session-only"
+                    ? "队伍未写入浏览器存储，请关闭窗口查看本次会话队伍。"
+                    : "创建后你会成为队长，并作为第 1 位成员加入。"}
               </p>
-              <button className="primary-action" type="submit">
+              <button
+                className="primary-action"
+                disabled={submissionStatus !== null}
+                type="submit"
+              >
                 <UsersThree aria-hidden="true" size={20} weight="bold" />
                 创建队伍
               </button>
+              {submissionStatus ? (
+                <button
+                  className="secondary-action"
+                  onClick={onClose}
+                  ref={successButtonRef}
+                  type="button"
+                >
+                  查看我的队伍
+                </button>
+              ) : null}
             </div>
           </form>
-        )}
       </div>
     </div>
   );

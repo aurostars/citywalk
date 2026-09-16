@@ -107,7 +107,6 @@ function GuideRow({ guide, onToggleSaved }: GuideRowProps) {
 
 export function GuidesPage() {
   const {
-    persistenceWarning,
     publishGuide,
     state,
     toggleGuideSaved,
@@ -141,7 +140,7 @@ export function GuidesPage() {
           <p className="home-kicker">北京周末路线库</p>
           <h1>走过，再分享</h1>
           <p>
-            从真实活动出发，读一条可执行的路线，也留下自己的周末经验。
+            从本期示例活动出发，读一条可执行的路线，也留下自己的周末经验。
           </p>
         </div>
         <button
@@ -199,12 +198,6 @@ export function GuidesPage() {
           </div>
         )}
       </section>
-
-      {persistenceWarning && !isComposing ? (
-        <p className="detail-persistence-warning" role="status">
-          {persistenceWarning}
-        </p>
-      ) : null}
 
       {isComposing ? (
         <GuideComposer

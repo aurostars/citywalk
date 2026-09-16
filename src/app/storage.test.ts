@@ -156,6 +156,11 @@ it("restores completed onboarding and preferences", () => {
   );
 });
 
+it("round-trips valid nested teams, check-ins, and guides exactly", () => {
+  expect(saveState(localStorage, nestedState)).toBe(true);
+  expect(loadState(localStorage)).toEqual(nestedState);
+});
+
 it("saves state in the versioned citywalk namespace", () => {
   saveState(localStorage, completedState);
   expect(localStorage.getItem("citywalk:v1")).toBe(

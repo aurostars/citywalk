@@ -33,4 +33,5 @@ it("moves keyboard focus to main content without replacing the route hash", asyn
   expect(
     await screen.findByRole("heading", { name: "一起出发" }),
   ).toBeVisible();
+  expect(screen.getByText("示例数据")).toBeVisible();
 });

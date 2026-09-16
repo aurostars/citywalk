@@ -35,6 +35,11 @@ export interface AddCheckinResult {
   persisted: boolean;
 }
 
+export interface CreateTeamResult {
+  id: string;
+  persisted: boolean;
+}
+
 export interface PublishGuideResult {
   id: string;
   persisted: boolean;
@@ -50,7 +55,7 @@ export type AppActions = {
       Team,
       "id" | "memberCount" | "joined" | "createdByUser"
     >,
-  ) => string;
+  ) => CreateTeamResult;
   addCheckin: (checkin: Omit<Checkin, "id">) => AddCheckinResult;
   publishGuide: (
     guide: Omit<Guide, "id" | "author" | "createdByUser">,
@@ -176,7 +181,7 @@ export function AppStateProvider({
 
   const createTeam = useCallback<AppActions["createTeam"]>((team) => {
     const id = createId("team");
-    commitState((currentState) => ({
+    const persisted = commitState((currentState) => ({
       ...currentState,
       teams: [
         {
@@ -189,7 +194,7 @@ export function AppStateProvider({
         ...currentState.teams,
       ],
     }));
-    return id;
+    return { id, persisted };
   }, [commitState]);
 
   const addCheckin = useCallback<AppActions["addCheckin"]>((checkin) => {

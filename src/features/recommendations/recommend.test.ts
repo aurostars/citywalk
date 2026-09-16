@@ -22,6 +22,8 @@ function makeActivity(overrides: Partial<Activity> = {}): Activity {
     indoor: true,
     suitablePartySizes: ["pair"],
     weatherKinds: ["rain"],
+    availableWeekdays: ["saturday"],
+    startTime: "10:00",
     schedule: "周六 10:00-18:00",
     durationMinutes: 120,
     imageUrl:
@@ -280,6 +282,39 @@ it("keeps related fixtures connected to known activities", () => {
   expect(guides.every(({ activityId }) => activityIds.has(activityId))).toBe(
     true,
   );
+});
+
+it("keeps every one-day route on a common weekday in stated order", () => {
+  const activitiesById = new Map(
+    activities.map((activity) => [activity.id, activity]),
+  );
+  const weekendDays = ["saturday", "sunday"] as const;
+  const invalidRouteIds = weekendRoutes.flatMap((route) => {
+    const routeActivities = route.activityIds.flatMap((activityId) => {
+      const activity = activitiesById.get(activityId);
+      return activity ? [activity] : [];
+    });
+    const validDays = weekendDays.filter((day) => {
+      const startTimes = routeActivities.map(
+        (activity) => activity.startTime,
+      );
+
+      return (
+        routeActivities.length === route.activityIds.length &&
+        routeActivities.every((activity) =>
+          activity.availableWeekdays.includes(day)
+        ) &&
+        startTimes.every(
+          (startTime, index) =>
+            index === 0 || startTimes[index - 1] <= startTime,
+        )
+      );
+    });
+
+    return validDays.length > 0 ? [] : [route.id];
+  });
+
+  expect(invalidRouteIds).toEqual([]);
 });
 
 it("schedules every team departure during its activity", () => {

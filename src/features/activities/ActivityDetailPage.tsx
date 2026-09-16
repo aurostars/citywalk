@@ -10,7 +10,16 @@ import {
   Path,
   UsersThree,
 } from "@phosphor-icons/react";
-import { Link, useParams } from "react-router-dom";
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
+import {
+  useLayoutEffect,
+  type MouseEvent,
+} from "react";
 import { useAppState } from "../../app/AppState";
 import { ImageWithFallback } from "../../components/ImageWithFallback";
 import { activities } from "../../data/activities";
@@ -65,8 +74,33 @@ function getWeatherGuidance(activity: Activity) {
 
 export function ActivityDetailPage() {
   const { activityId } = useParams();
-  const { persistenceWarning, state, toggleFavorite } = useAppState();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { state, toggleFavorite } = useAppState();
   const activity = activities.find(({ id }) => id === activityId);
+  const cameFromHome = Boolean(
+    (location.state as { fromHome?: boolean } | null)?.fromHome,
+  );
+
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.key]);
+
+  function returnToHome(event: MouseEvent<HTMLAnchorElement>) {
+    if (
+      !cameFromHome ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+    navigate(-1);
+  }
 
   if (!activity) {
     return (
@@ -98,7 +132,11 @@ export function ActivityDetailPage() {
 
   return (
     <article className="activity-detail">
-      <Link className="detail-back-link" to="/">
+      <Link
+        className="detail-back-link"
+        onClick={returnToHome}
+        to="/"
+      >
         <ArrowLeft aria-hidden="true" size={18} weight="bold" />
         返回周末推荐
       </Link>
@@ -141,11 +179,6 @@ export function ActivityDetailPage() {
             </Link>
           </div>
 
-          {persistenceWarning ? (
-            <p className="detail-persistence-warning" role="status">
-              {persistenceWarning}
-            </p>
-          ) : null}
         </div>
 
         <figure className="activity-detail-media">

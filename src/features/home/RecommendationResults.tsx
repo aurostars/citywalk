@@ -205,6 +205,7 @@ export function RecommendationResults({
             <Link
               aria-label={`查看${leadActivity.title}详情`}
               className="light-action"
+              state={{ fromHome: true }}
               to={`/activity/${leadActivity.id}`}
             >
               查看首选活动

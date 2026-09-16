@@ -17,6 +17,10 @@ beforeEach(() => {
   localStorage.clear();
 });
 
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
 it("requires an activity type and budget before generating", async () => {
   const user = userEvent.setup();
   renderApp("/");
@@ -47,6 +51,30 @@ it("reveals recommendations and supports editing saved preferences", async () =>
   await user.click(screen.getByRole("button", { name: "调整偏好" }));
   expect(screen.getByRole("checkbox", { name: "看展" })).toBeChecked();
   expect(screen.getByRole("radio", { name: "100 元内" })).toBeChecked();
+});
+
+it("shows a shell warning when onboarding preferences cannot persist", async () => {
+  const user = userEvent.setup();
+  const setItem = vi
+    .spyOn(Storage.prototype, "setItem")
+    .mockImplementation(() => {
+      throw new DOMException("Storage unavailable", "QuotaExceededError");
+    });
+  renderApp("/");
+
+  await user.click(screen.getByRole("checkbox", { name: "看展" }));
+  await user.click(screen.getByRole("radio", { name: "100 元内" }));
+  await user.click(screen.getByRole("button", { name: "生成周末计划" }));
+
+  expect(
+    await screen.findByRole("heading", { name: "为你安排的北京周末" }),
+  ).toBeVisible();
+  expect(
+    screen.getByRole("status", { name: "浏览器存储提示" }),
+  ).toHaveTextContent(
+    "更改已保留在当前页面，但无法写入浏览器存储。",
+  );
+  expect(setItem).toHaveBeenCalledTimes(1);
 });
 
 it("restores saved results on a return visit", () => {
