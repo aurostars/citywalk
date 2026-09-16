@@ -1,7 +1,7 @@
 # 城迹 Citywalk
 
-面向大学生的北京周末城市探索指南。选择活动类型和预算，在同页查看推荐路线，然后组队出发、记录打卡、分享攻略。
-
+面向大学生等群体的北京周末城市探索指南。选择活动类型、预算、人数，在同页查看本周末推荐路线，然后组队出发、记录打卡、分享攻略。
+demo网页：https://aurostars.github.io/citywalk/
 这是使用合成示例数据的前端原型。活动时间、费用、天气、路线、队伍和攻略均用于体验交互，不是实时出行信息；生成式图片仅作场景示意。
 
 ## 本地运行
@@ -52,8 +52,6 @@ npm run test:e2e
 ## GitHub Pages
 
 仓库使用 GitHub Actions 构建静态站点，Vite 基础路径为 `/citywalk/`。页面使用哈希路由，因此刷新活动详情等子页面不会请求不存在的服务器路径。工作流在拉取请求和主分支上依次执行单元测试、构建和 Chromium E2E；只有主分支全部通过后才上传并部署 Pages 产物，失败诊断会作为短期 artifact 保留。
-
-首次发布前，仓库管理员需要完成一次设置：选择 **Settings > Pages > Build and deployment > Source: GitHub Actions**。之后部署继续使用工作流内置的最小权限 `GITHUB_TOKEN`，无需添加管理权限密钥。
 
 目标网址：<https://aurostars.github.io/citywalk/>。
 
