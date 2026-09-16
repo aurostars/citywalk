@@ -31,6 +31,6 @@ it("moves keyboard focus to main content without replacing the route hash", asyn
     "#/teams?activity=798-art-weekend",
   );
   expect(
-    screen.getByRole("heading", { name: "一起出发" }),
+    await screen.findByRole("heading", { name: "一起出发" }),
   ).toBeVisible();
 });

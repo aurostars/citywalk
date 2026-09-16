@@ -8,6 +8,7 @@ import {
   defaultAppState,
   useAppState,
 } from "./AppState";
+import { ThemeToggle } from "../components/ThemeToggle";
 import { renderApp } from "../test/renderApp";
 
 const colorSchemeQuery = "(prefers-color-scheme: dark)";
@@ -183,6 +184,14 @@ function AppStateHarness() {
   );
 }
 
+function renderThemeToggle() {
+  return render(
+    <AppStateProvider>
+      <ThemeToggle />
+    </AppStateProvider>,
+  );
+}
+
 function renderStateHarness(initialState = defaultAppState) {
   return render(
     <AppStateProvider initialState={initialState}>
@@ -211,10 +220,15 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-it("renders the 城迹 navigation through the production app", () => {
+it("renders the 城迹 navigation through the production app", async () => {
   render(<App />);
   expect(screen.getByRole("link", { name: "城迹" })).toBeInTheDocument();
   expect(screen.getByRole("link", { name: "推荐" })).toBeInTheDocument();
+  expect(
+    await screen.findByRole("heading", {
+      name: "这个周末，换条路走。",
+    }),
+  ).toBeVisible();
 });
 
 it("follows system theme changes without setting a root override", () => {
@@ -238,7 +252,7 @@ it("follows system theme changes without setting a root override", () => {
 it("persists a manual theme override and restores it on remount", async () => {
   const user = userEvent.setup();
   const colorScheme = installMatchMedia(true);
-  const firstRender = render(<App />);
+  const firstRender = renderThemeToggle();
 
   await user.click(
     screen.getByRole("button", { name: "切换至浅色主题" }),
@@ -255,7 +269,7 @@ it("persists a manual theme override and restores it on remount", async () => {
 
   firstRender.unmount();
   delete document.documentElement.dataset.theme;
-  render(<App />);
+  renderThemeToggle();
 
   await waitFor(() => {
     expect(document.documentElement).toHaveAttribute("data-theme", "light");

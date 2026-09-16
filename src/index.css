@@ -111,6 +111,9 @@ main:focus-visible {
   z-index: 100;
   top: 12px;
   left: 12px;
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
   padding: 10px 14px;
   border: 0;
   border-radius: 8px;
@@ -143,6 +146,9 @@ main:focus-visible {
 }
 
 .brand-link {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
   font-size: 1.45rem;
   font-weight: 900;
   letter-spacing: -0.035em;
@@ -182,7 +188,7 @@ main:focus-visible {
 
 .nav-link {
   display: inline-flex;
-  min-height: 40px;
+  min-height: 44px;
   align-items: center;
   padding: 0 13px;
   border-radius: 8px;
@@ -203,7 +209,7 @@ main:focus-visible {
 
 .theme-toggle {
   display: inline-flex;
-  min-height: 40px;
+  min-height: 44px;
   align-items: center;
   gap: 7px;
   justify-content: center;
@@ -224,6 +230,24 @@ main:focus-visible {
 
 main {
   min-height: calc(100vh - 69px);
+}
+
+.route-loading {
+  display: flex;
+  min-height: calc(100dvh - 69px);
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.route-loading-mark {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--accent);
 }
 
 .route-placeholder {
@@ -286,7 +310,7 @@ main {
   }
 
   .theme-toggle {
-    width: 40px;
+    width: 44px;
     padding: 0;
   }
 
@@ -303,6 +327,7 @@ main {
   }
 
   main,
+  .route-loading,
   .route-placeholder {
     min-height: calc(100vh - 132px);
   }
@@ -496,7 +521,7 @@ main {
 
 .selection-control span {
   display: inline-flex;
-  min-height: 38px;
+  min-height: 44px;
   align-items: center;
   justify-content: center;
   padding: 0 14px;
@@ -706,7 +731,7 @@ main {
 }
 
 .edit-preferences {
-  min-height: 42px;
+  min-height: 44px;
   gap: 8px;
   align-self: end;
 }
@@ -744,7 +769,7 @@ main {
 }
 
 .party-size-control .selection-control span {
-  min-height: 34px;
+  min-height: 44px;
   padding-inline: 12px;
   font-size: 0.76rem;
 }
@@ -954,6 +979,7 @@ main {
 .light-action,
 .text-action {
   display: inline-flex;
+  min-height: 44px;
   align-items: center;
   gap: 7px;
   font-size: 0.82rem;
@@ -961,7 +987,6 @@ main {
 }
 
 .light-action {
-  min-height: 40px;
   padding: 0 13px;
   border: 1px solid rgb(255 255 255 / 0.48);
   border-radius: 8px;
@@ -1332,7 +1357,7 @@ main {
   }
 
   .selection-control span {
-    min-height: 34px;
+    min-height: 44px;
     padding-inline: 12px;
     font-size: 0.78rem;
   }
@@ -1578,9 +1603,9 @@ main {
 
 .activity-card-favorite {
   display: inline-flex;
-  width: 40px;
-  min-width: 40px;
-  height: 40px;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
   align-items: center;
   justify-content: center;
   padding: 0;
@@ -1603,7 +1628,7 @@ main {
 
 .detail-back-link {
   display: inline-flex;
-  min-height: 40px;
+  min-height: 44px;
   align-items: center;
   gap: 7px;
   color: var(--muted);
@@ -2183,7 +2208,7 @@ main {
 .team-row-action .primary-action,
 .team-row-action .secondary-action {
   width: 100%;
-  min-height: 42px;
+  min-height: 44px;
   gap: 8px;
   padding-inline: 14px;
   font-size: 0.82rem;
@@ -2231,7 +2256,7 @@ main {
 }
 
 .team-dialog-close {
-  width: 40px;
+  width: 44px;
   flex: none;
   padding: 0;
 }
@@ -2680,7 +2705,7 @@ main {
 }
 
 .checkin-dialog-close {
-  width: 40px;
+  width: 44px;
   flex: none;
   padding: 0;
 }
@@ -2835,7 +2860,7 @@ main {
 
 .checkin-rating-options span {
   display: flex;
-  min-height: 42px;
+  min-height: 44px;
   align-items: center;
   justify-content: center;
   gap: 5px;
@@ -3057,7 +3082,7 @@ main {
 }
 
 .guide-filters button {
-  min-height: 36px;
+  min-height: 44px;
   padding-inline: 14px;
   border: 1px solid var(--line);
   border-radius: 999px;
@@ -3169,7 +3194,7 @@ main {
 
 .guide-save-action {
   display: inline-flex;
-  min-height: 40px;
+  min-height: 44px;
   flex: none;
   align-items: center;
   justify-content: center;
@@ -3256,7 +3281,7 @@ main {
 }
 
 .guide-dialog-close {
-  width: 40px;
+  width: 44px;
   flex: none;
   padding: 0;
 }
