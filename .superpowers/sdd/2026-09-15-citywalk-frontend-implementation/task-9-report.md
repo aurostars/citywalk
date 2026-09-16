@@ -95,3 +95,32 @@ The confirmation round showed consistent light/dark hierarchy, no clipping, and 
 ## Delivery Boundary
 
 The intended commit message is `test: verify responsive flows and Pages deployment`. Deployment and push remain intentionally unperformed.
+
+## Fix Round 1
+
+Date: 2026-09-16
+
+### Corrections
+
+- README now names the one-time **Settings > Pages > Build and deployment > Source: GitHub Actions** prerequisite. The workflow remains unchanged with read-only default permissions and job-scoped Pages/OIDC writes.
+- Overflow acceptance now waits for each lazy route's heading and verifies rendered Home onboarding/results, Activity Detail, Teams, Check-ins, Guides, and all three open creation dialogs at `390x844`, `768x1024`, and `1440x900`. Measurements cover the document, each page/dialog surface, and its rendered direct children; the route fallback must be absent.
+- Reduced-motion acceptance selects preferences and clicks directly, records browser `performance.now()` at the click and rendered-result mutations, and requires completion under 300 ms. There are no sleep-based waits.
+- Image acceptance fetches and holds the required 798 endpoint response, verifies a nonzero reserved frame while the image is incomplete with zero natural dimensions, releases the response, and compares the loaded frame. Existing required-endpoint, explicit width/height, and nonzero natural-dimension assertions remain.
+- The delayed-image test exposed a real defect: the lead image changed from `729.828x547.359` before release to `729.828x729.828` after the provider's square generating raster loaded. `.lead-activity-image` now enforces the declared 4:3 ratio; no other app behavior changed.
+
+### RED Evidence
+
+- The previous focused overflow/reduced-motion/image tests all passed (`5 passed in 11.1s`), confirming the review's false-green baseline.
+- Delaying the Teams chunk for 12 seconds made the new `390x844` overflow scenario fail at the `一起出发` heading after 10 seconds instead of measuring `页面加载中`.
+- Forcing the normal 400 ms generation delay under reduced motion failed with `Received: 407`, above the strict `< 300` ms bound.
+- Holding the 798 response exposed the real pre-load/post-load frame mismatch above. A load-event resize mutation also failed the same frame equality assertion.
+
+### GREEN Evidence
+
+- Focused overflow, reduced-motion, and image acceptance: `5 passed in 18.2s`.
+- Reduced-motion stability repeat: `10 passed in 15.3s`.
+- Full Chromium E2E: `15 passed in 37.4s`.
+- Full Vitest: `12` files, `93` tests passed in `11.88s`.
+- Production build: 4996 modules transformed, no chunk warning; initial JavaScript remains `293.05 kB`.
+- The four ignored final screenshots were refreshed because the real 4:3 frame fix changes the rendered lead-image height.
+- No GitHub API, deployment, push, or other remote administration call was performed.

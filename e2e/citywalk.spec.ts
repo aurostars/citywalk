@@ -1,7 +1,10 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 const imageEndpoint =
   "https://copilot-cn.bytedance.net/api/ide/v1/text_to_image";
+const heldImagePrompt =
+  "Realistic editorial travel photograph of 798 Art District";
+const reducedMotionCompletionLimitMs = 300;
 
 async function resetApp(page: Page) {
   await page.goto("./", { waitUntil: "domcontentloaded" });
@@ -18,20 +21,76 @@ async function generateWeekendPlan(page: Page) {
   ).toBeVisible();
 }
 
-async function expectNoHorizontalOverflow(page: Page) {
-  const dimensions = await page.evaluate(() => ({
-    bodyClientWidth: document.body.clientWidth,
-    bodyScrollWidth: document.body.scrollWidth,
-    rootClientWidth: document.documentElement.clientWidth,
-    rootScrollWidth: document.documentElement.scrollWidth,
-  }));
+async function expectNoHorizontalOverflow(
+  page: Page,
+  surface: Locator,
+  surfaceName: string,
+) {
+  await expect(surface).toBeVisible();
+  await expect(
+    page.getByRole("status", { name: "页面加载中" }),
+  ).toHaveCount(0);
 
-  expect(dimensions.bodyScrollWidth).toBeLessThanOrEqual(
+  const dimensions = await surface.evaluate((element) => {
+    const root = document.documentElement;
+    const viewportWidth = root.clientWidth;
+    const outOfViewportChildren = Array.from(element.children).flatMap(
+      (child) => {
+        const bounds = child.getBoundingClientRect();
+        const style = window.getComputedStyle(child);
+        if (
+          style.display === "none" ||
+          style.visibility === "hidden" ||
+          bounds.width === 0 ||
+          bounds.height === 0
+        ) {
+          return [];
+        }
+
+        return bounds.left < -1 || bounds.right > viewportWidth + 1
+          ? [
+              {
+                left: Math.round(bounds.left),
+                name:
+                  child.getAttribute("class") || child.tagName.toLowerCase(),
+                right: Math.round(bounds.right),
+              },
+            ]
+          : [];
+      },
+    );
+
+    return {
+      bodyClientWidth: document.body.clientWidth,
+      bodyScrollWidth: document.body.scrollWidth,
+      outOfViewportChildren,
+      rootClientWidth: viewportWidth,
+      rootScrollWidth: root.scrollWidth,
+      surfaceClientWidth: element.clientWidth,
+      surfaceScrollWidth: element.scrollWidth,
+    };
+  });
+
+  expect(
+    dimensions.bodyScrollWidth,
+    `${surfaceName} expanded the document body`,
+  ).toBeLessThanOrEqual(
     dimensions.bodyClientWidth + 1,
   );
-  expect(dimensions.rootScrollWidth).toBeLessThanOrEqual(
+  expect(
+    dimensions.rootScrollWidth,
+    `${surfaceName} expanded the document root`,
+  ).toBeLessThanOrEqual(
     dimensions.rootClientWidth + 1,
   );
+  expect(
+    dimensions.surfaceScrollWidth,
+    `${surfaceName} has local horizontal overflow`,
+  ).toBeLessThanOrEqual(dimensions.surfaceClientWidth + 1);
+  expect(
+    dimensions.outOfViewportChildren,
+    `${surfaceName} has rendered children outside the viewport`,
+  ).toEqual([]);
 }
 
 test.beforeEach(async ({ page }) => {
@@ -331,15 +390,81 @@ for (const viewport of [
     page,
   }) => {
     await page.setViewportSize(viewport);
-    await page.reload({ waitUntil: "domcontentloaded" });
-    await expectNoHorizontalOverflow(page);
+    await page.goto("./", { waitUntil: "domcontentloaded" });
+    await expect(
+      page.getByRole("heading", { name: "这个周末，换条路走。" }),
+    ).toBeVisible();
+    await expectNoHorizontalOverflow(
+      page,
+      page.locator(".home-page"),
+      "Home onboarding",
+    );
 
     await generateWeekendPlan(page);
-    await expectNoHorizontalOverflow(page);
+    await expectNoHorizontalOverflow(
+      page,
+      page.locator(".home-page"),
+      "Home results",
+    );
 
-    for (const route of ["#/teams", "#/checkins", "#/guides"]) {
-      await page.goto(`./${route}`);
-      await expectNoHorizontalOverflow(page);
+    for (const surface of [
+      {
+        heading: "798 当代艺术周末",
+        name: "Activity Detail",
+        route: "#/activity/798-art-weekend",
+        selector: ".activity-detail",
+      },
+      {
+        dialogButton: "发起队伍",
+        dialogName: "创建周末队伍",
+        heading: "一起出发",
+        name: "Teams",
+        route: "#/teams",
+        selector: ".teams-page",
+      },
+      {
+        dialogButton: "新增打卡",
+        dialogName: "记录一次出发",
+        heading: "留下城迹",
+        name: "Check-ins",
+        route: "#/checkins",
+        selector: ".checkins-page",
+      },
+      {
+        dialogButton: "写攻略",
+        dialogName: "分享周末攻略",
+        heading: "走过，再分享",
+        name: "Guides",
+        route: "#/guides",
+        selector: ".guides-page",
+      },
+    ]) {
+      await page.goto(`./${surface.route}`, {
+        waitUntil: "domcontentloaded",
+      });
+      await expect(
+        page.getByRole("heading", { name: surface.heading }),
+      ).toBeVisible();
+      await expectNoHorizontalOverflow(
+        page,
+        page.locator(surface.selector),
+        surface.name,
+      );
+
+      if (surface.dialogButton && surface.dialogName) {
+        await page
+          .getByRole("button", { name: surface.dialogButton })
+          .click();
+        const dialog = page.getByRole("dialog", {
+          name: surface.dialogName,
+        });
+        await expect(dialog).toBeVisible();
+        await expectNoHorizontalOverflow(
+          page,
+          dialog,
+          `${surface.name} creation dialog`,
+        );
+      }
     }
   });
 }
@@ -354,7 +479,66 @@ test("reduced motion keeps state changes immediate and removes decorative animat
     name: "生成周末计划",
   });
   await expect(preferenceButton).toHaveCSS("transition-duration", "0s");
-  await generateWeekendPlan(page);
+  await page.getByRole("checkbox", { name: "看展" }).check();
+  await page.getByRole("radio", { name: "100 元内" }).check();
+  await preferenceButton.evaluate((button) => {
+    const probe = {
+      clickAt: null as number | null,
+      resultAt: null as number | null,
+    };
+    const probeWindow = window as typeof window & {
+      __citywalkReducedMotionProbe?: typeof probe;
+    };
+    probeWindow.__citywalkReducedMotionProbe = probe;
+
+    const observer = new MutationObserver(() => {
+      if (document.querySelector(".results-stage h1")) {
+        probe.resultAt = performance.now();
+        observer.disconnect();
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    button.addEventListener(
+      "click",
+      () => {
+        probe.clickAt = performance.now();
+      },
+      { capture: true, once: true },
+    );
+  });
+
+  await preferenceButton.click();
+  await page.waitForFunction(
+    () => {
+      const probeWindow = window as typeof window & {
+        __citywalkReducedMotionProbe?: {
+          clickAt: number | null;
+          resultAt: number | null;
+        };
+      };
+      return probeWindow.__citywalkReducedMotionProbe?.resultAt !== null;
+    },
+    undefined,
+    { timeout: 2_000 },
+  );
+  const completionMs = await page.evaluate(() => {
+    const probeWindow = window as typeof window & {
+      __citywalkReducedMotionProbe?: {
+        clickAt: number | null;
+        resultAt: number | null;
+      };
+    };
+    const probe = probeWindow.__citywalkReducedMotionProbe;
+    if (probe?.clickAt === null || probe?.resultAt === null || !probe) {
+      throw new Error("Reduced-motion completion was not observed");
+    }
+    return probe.resultAt - probe.clickAt;
+  });
+
+  expect(completionMs).toBeLessThan(reducedMotionCompletionLimitMs);
+  await expect(
+    page.getByRole("heading", { name: "为你安排的北京周末" }),
+  ).toBeVisible();
   await expect(page.locator(".skeleton").first()).toBeHidden();
   await expect(
     page.getByRole("button", { name: "调整偏好" }),
@@ -364,44 +548,121 @@ test("reduced motion keeps state changes immediate and removes decorative animat
 test("generated images load from the required endpoint without shifting frames", async ({
   page,
 }) => {
-  await generateWeekendPlan(page);
-  const images = page.locator("img");
-  await expect(images.first()).toBeVisible();
+  let hasClaimedRequiredImage = false;
+  let heldImageUrl: string | null = null;
+  let heldResponseReady = false;
+  let releaseHeldImageResponse: () => void = () => {};
+  const heldImageResponseGate = new Promise<void>((resolve) => {
+    releaseHeldImageResponse = resolve;
+  });
 
-  for (let index = 0; index < (await images.count()); index += 1) {
-    const image = images.nth(index);
-    await image.scrollIntoViewIfNeeded();
+  await page.route(
+    (url) =>
+      url.href.startsWith(imageEndpoint) &&
+      url.searchParams.get("prompt")?.startsWith(heldImagePrompt) === true,
+    async (route) => {
+      if (hasClaimedRequiredImage) {
+        await route.continue();
+        return;
+      }
+
+      hasClaimedRequiredImage = true;
+      heldImageUrl = route.request().url();
+      const response = await route.fetch();
+      heldResponseReady = true;
+      await heldImageResponseGate;
+      await route.fulfill({ response });
+    },
+  );
+
+  try {
+    await generateWeekendPlan(page);
     await expect
-      .poll(() =>
-        image.evaluate(
-          (element) =>
-            element.complete &&
-            element.naturalWidth > 0 &&
-            element.naturalHeight > 0,
-        ),
+      .poll(() => heldResponseReady, { timeout: 30_000 })
+      .toBe(true);
+    expect(heldImageUrl).not.toBeNull();
+
+    const before = await page.evaluate((url) => {
+      const image = Array.from(document.images).find(
+        (candidate) => candidate.src === url,
+      );
+      if (!image) {
+        return null;
+      }
+      const bounds = image.getBoundingClientRect();
+      return {
+        complete: image.complete,
+        height: bounds.height,
+        naturalHeight: image.naturalHeight,
+        naturalWidth: image.naturalWidth,
+        width: bounds.width,
+      };
+    }, heldImageUrl);
+    expect(before).not.toBeNull();
+    expect(before?.complete).toBe(false);
+    expect(before?.naturalHeight).toBe(0);
+    expect(before?.naturalWidth).toBe(0);
+    expect(before?.height).toBeGreaterThan(0);
+    expect(before?.width).toBeGreaterThan(0);
+
+    releaseHeldImageResponse();
+    await expect
+      .poll(
+        () =>
+          page.evaluate((url) => {
+            const image = Array.from(document.images).find(
+              (candidate) => candidate.src === url,
+            );
+            return Boolean(
+              image?.complete &&
+                image.naturalWidth > 0 &&
+                image.naturalHeight > 0,
+            );
+          }, heldImageUrl),
+        { timeout: 30_000 },
       )
       .toBe(true);
-    await expect(image).toHaveAttribute("src", new RegExp(`^${imageEndpoint}`));
-    await expect(image).toHaveAttribute("width", /^[1-9]\d*$/);
-    await expect(image).toHaveAttribute("height", /^[1-9]\d*$/);
+
+    const after = await page.evaluate((url) => {
+      const image = Array.from(document.images).find(
+        (candidate) => candidate.src === url,
+      );
+      if (!image) {
+        return null;
+      }
+      const bounds = image.getBoundingClientRect();
+      return { height: bounds.height, width: bounds.width };
+    }, heldImageUrl);
+    expect(after).toEqual({
+      height: before?.height,
+      width: before?.width,
+    });
+
+    const images = page.locator("img");
+    await expect(images.first()).toBeVisible();
+    for (let index = 0; index < (await images.count()); index += 1) {
+      const image = images.nth(index);
+      await image.scrollIntoViewIfNeeded();
+      await expect
+        .poll(
+          () =>
+            image.evaluate(
+              (element) =>
+                element.complete &&
+                element.naturalWidth > 0 &&
+                element.naturalHeight > 0,
+            ),
+          { timeout: 30_000 },
+        )
+        .toBe(true);
+      await expect(image).toHaveAttribute(
+        "src",
+        new RegExp(`^${imageEndpoint}`),
+      );
+      await expect(image).toHaveAttribute("width", /^[1-9]\d*$/);
+      await expect(image).toHaveAttribute("height", /^[1-9]\d*$/);
+    }
+  } finally {
+    releaseHeldImageResponse();
   }
-
-  const before = await images.evaluateAll((elements) =>
-    elements.map((element) => {
-      const bounds = element.getBoundingClientRect();
-      return { height: bounds.height, width: bounds.width };
-    }),
-  );
-  await page.waitForTimeout(500);
-  const after = await images.evaluateAll((elements) =>
-    elements.map((element) => {
-      const bounds = element.getBoundingClientRect();
-      return { height: bounds.height, width: bounds.width };
-    }),
-  );
-
-  expect(after).toEqual(before);
-  expect(
-    after.every(({ height, width }) => height > 0 && width > 0),
-  ).toBe(true);
 });

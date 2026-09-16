@@ -53,6 +53,8 @@ npm run test:e2e
 
 仓库使用 GitHub Actions 构建静态站点，Vite 基础路径为 `/citywalk/`。页面使用哈希路由，因此刷新活动详情等子页面不会请求不存在的服务器路径。工作流在拉取请求和主分支上依次执行单元测试、构建和 Chromium E2E；只有主分支全部通过后才上传并部署 Pages 产物，失败诊断会作为短期 artifact 保留。
 
+首次发布前，仓库管理员需要完成一次设置：选择 **Settings > Pages > Build and deployment > Source: GitHub Actions**。之后部署继续使用工作流内置的最小权限 `GITHUB_TOKEN`，无需添加管理权限密钥。
+
 目标网址：<https://aurostars.github.io/citywalk/>。
 
 技术栈：React、TypeScript、Vite、Tailwind CSS v4、Motion、Phosphor Icons、Vitest、Testing Library、Playwright。
