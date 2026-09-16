@@ -3,6 +3,7 @@ import { useRoutes } from "react-router-dom";
 import { AppShell } from "../components/AppShell";
 import { ActivityDetailPage } from "../features/activities/ActivityDetailPage";
 import { HomePage } from "../features/home/HomePage";
+import { TeamsPage } from "../features/teams/TeamsPage";
 
 interface RoutePlaceholderProps {
   description: string;
@@ -38,13 +39,7 @@ export const appRoutes: RouteObject[] = [
       },
       {
         path: "teams",
-        element: (
-          <RoutePlaceholder
-            description="看看谁也准备出发，找到合适的周末同行者。"
-            id="teams"
-            title="一起出发"
-          />
-        ),
+        element: <TeamsPage />,
       },
       {
         path: "checkins",

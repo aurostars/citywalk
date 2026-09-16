@@ -1,0 +1,141 @@
+import { screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { renderApp } from "../../test/renderApp";
+
+beforeEach(() => {
+  localStorage.clear();
+});
+
+it("renders fixture details and joins and leaves an available team", async () => {
+  const user = userEvent.setup();
+  renderApp("/teams");
+
+  const team = screen.getByRole("article", {
+    name: "798 当代艺术周末组队",
+  });
+  expect(
+    within(team).getByRole("img", {
+      name: "798 艺术区红砖厂房与正在看展的年轻人",
+    }),
+  ).toBeVisible();
+  expect(within(team).getByText("9月19日 10:00")).toBeVisible();
+  expect(within(team).getByText("798 艺术区南门")).toBeVisible();
+  expect(within(team).getByText("2 / 4 人")).toBeVisible();
+  expect(within(team).getByText("林一")).toBeVisible();
+
+  await user.click(
+    within(team).getByRole("button", { name: "加入队伍" }),
+  );
+  expect(within(team).getByText("已加入")).toBeVisible();
+  expect(within(team).getByText("3 / 4 人")).toBeVisible();
+
+  await user.click(
+    within(team).getByRole("button", { name: "退出队伍" }),
+  );
+  expect(
+    within(team).getByRole("button", { name: "加入队伍" }),
+  ).toBeVisible();
+  expect(within(team).getByText("2 / 4 人")).toBeVisible();
+});
+
+it("disables joining when a fixture team is full", () => {
+  renderApp("/teams");
+
+  const fullTeam = screen.getByRole("article", {
+    name: "鼓楼胡同周末市集组队",
+  });
+  expect(
+    within(fullTeam).getByRole("button", { name: "队伍已满" }),
+  ).toBeDisabled();
+  expect(within(fullTeam).getByText("3 / 3 人")).toBeVisible();
+});
+
+it("preselects the activity supplied by the detail page query", async () => {
+  const user = userEvent.setup();
+  renderApp("/teams?activity=798-art-weekend");
+
+  await user.click(screen.getByRole("button", { name: "发起队伍" }));
+
+  expect(screen.getByRole("dialog", { name: "创建周末队伍" }))
+    .toBeVisible();
+  expect(screen.getByLabelText("活动")).toHaveValue("798-art-weekend");
+});
+
+it("shows inline validation errors with visible form labels", async () => {
+  const user = userEvent.setup();
+  renderApp("/teams");
+
+  await user.click(screen.getByRole("button", { name: "发起队伍" }));
+  await user.click(screen.getByRole("button", { name: "创建队伍" }));
+
+  expect(screen.getByLabelText("活动")).toHaveFocus();
+  expect(screen.getByLabelText("活动")).toBeInvalid();
+  expect(screen.getByText("请选择活动")).toBeVisible();
+  expect(screen.getByLabelText("出发时间")).toBeInvalid();
+  expect(screen.getByText("请选择出发时间")).toBeVisible();
+  expect(screen.getByLabelText("集合点")).toBeInvalid();
+  expect(screen.getByText("请填写集合点")).toBeVisible();
+  expect(screen.getByLabelText("人数上限")).toBeVisible();
+  expect(screen.getByLabelText("队伍说明")).toBeInvalid();
+  expect(screen.getByText("请填写队伍说明")).toBeVisible();
+});
+
+it("keeps the creation dialog open after success until explicit close", async () => {
+  const user = userEvent.setup();
+  renderApp("/teams?activity=798-art-weekend");
+
+  await user.click(screen.getByRole("button", { name: "发起队伍" }));
+  await user.type(
+    screen.getByLabelText("出发时间"),
+    "2026-09-19T10:00",
+  );
+  await user.type(screen.getByLabelText("集合点"), "798 艺术区南门");
+  await user.selectOptions(screen.getByLabelText("人数上限"), "4");
+  await user.type(
+    screen.getByLabelText("队伍说明"),
+    "一起看展，中午附近吃饭",
+  );
+  await user.click(screen.getByRole("button", { name: "创建队伍" }));
+
+  expect(screen.getByRole("status")).toHaveTextContent("队伍已创建");
+  expect(
+    screen.getByRole("button", { name: "查看我的队伍" }),
+  ).toHaveFocus();
+  expect(screen.getByRole("dialog", { name: "创建周末队伍" }))
+    .toBeVisible();
+
+  await user.click(
+    screen.getByRole("button", { name: "关闭创建窗口" }),
+  );
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+});
+
+it("shows a created team as joined with one member", async () => {
+  const user = userEvent.setup();
+  renderApp("/teams?activity=798-art-weekend");
+
+  await user.click(screen.getByRole("button", { name: "发起队伍" }));
+  await user.type(
+    screen.getByLabelText("出发时间"),
+    "2026-09-19T11:00",
+  );
+  await user.type(screen.getByLabelText("集合点"), "尤伦斯北门");
+  await user.selectOptions(screen.getByLabelText("人数上限"), "4");
+  await user.type(screen.getByLabelText("队伍说明"), "回归测试新队伍");
+  await user.click(screen.getByRole("button", { name: "创建队伍" }));
+  await user.click(
+    screen.getByRole("button", { name: "关闭创建窗口" }),
+  );
+
+  const createdTeam = screen.getByText("回归测试新队伍").closest("article");
+  expect(createdTeam).not.toBeNull();
+  expect(within(createdTeam as HTMLElement).getByText("1 / 4 人"))
+    .toBeVisible();
+  expect(within(createdTeam as HTMLElement).getByText("已加入"))
+    .toBeVisible();
+  expect(
+    within(createdTeam as HTMLElement).getByRole("button", {
+      name: "退出队伍",
+    }),
+  ).toBeVisible();
+});

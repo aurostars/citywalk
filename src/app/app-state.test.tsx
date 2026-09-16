@@ -121,6 +121,13 @@ function AppStateHarness() {
         创建队伍
       </button>
       <button
+        disabled={!createdTeamId}
+        onClick={() => joinTeam(createdTeamId)}
+        type="button"
+      >
+        再次加入新队伍
+      </button>
+      <button
         onClick={() =>
           setCreatedCheckinId(
             addCheckin({
@@ -297,7 +304,7 @@ it("joins and leaves an available team", async () => {
   });
 });
 
-it("creates a user-owned team and returns its ID", async () => {
+it("creates a joined user-owned team without double counting a later join", async () => {
   const user = userEvent.setup();
   renderStateHarness();
 
@@ -307,8 +314,18 @@ it("creates a user-owned team and returns its ID", async () => {
   expect(createdId).toMatch(/^team-/);
   expect(readRenderedState().teams[0]).toMatchObject({
     id: createdId,
+    joined: true,
     memberCount: 1,
     createdByUser: true,
+  });
+
+  await user.click(
+    screen.getByRole("button", { name: "再次加入新队伍" }),
+  );
+  expect(readRenderedState().teams[0]).toMatchObject({
+    id: createdId,
+    joined: true,
+    memberCount: 1,
   });
 });
 

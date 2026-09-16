@@ -36,7 +36,10 @@ export type AppActions = {
   joinTeam: (teamId: string) => void;
   leaveTeam: (teamId: string) => void;
   createTeam: (
-    team: Omit<Team, "id" | "memberCount" | "createdByUser">,
+    team: Omit<
+      Team,
+      "id" | "memberCount" | "joined" | "createdByUser"
+    >,
   ) => string;
   addCheckin: (checkin: Omit<Checkin, "id">) => string;
   publishGuide: (
@@ -165,6 +168,7 @@ export function AppStateProvider({
           ...team,
           id,
           memberCount: 1,
+          joined: true,
           createdByUser: true,
         },
         ...currentState.teams,
