@@ -753,6 +753,11 @@ test("static images load without generation requests or shifting frames", async 
         "src",
         /\/citywalk\/images\/.+\.webp$/,
       );
+      expect(
+        await image.evaluate(
+          (node) => new URL(node.src).origin === window.location.origin,
+        ),
+      ).toBe(true);
       expect(await image.evaluate((node) => node.naturalWidth)).toBeGreaterThan(
         0,
       );
@@ -760,6 +765,7 @@ test("static images load without generation requests or shifting frames", async 
         await image.evaluate((node) => node.naturalHeight),
       ).toBeGreaterThan(0);
     }
+    expect(generationRequests).toHaveLength(0);
   } finally {
     releaseHeldImageResponse();
   }
