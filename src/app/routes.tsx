@@ -1,6 +1,7 @@
 import type { RouteObject } from "react-router-dom";
 import { useRoutes } from "react-router-dom";
 import { AppShell } from "../components/AppShell";
+import { ActivityDetailPage } from "../features/activities/ActivityDetailPage";
 import { HomePage } from "../features/home/HomePage";
 
 interface RoutePlaceholderProps {
@@ -30,6 +31,10 @@ export const appRoutes: RouteObject[] = [
       {
         index: true,
         element: <HomePage />,
+      },
+      {
+        path: "activity/:activityId",
+        element: <ActivityDetailPage />,
       },
       {
         path: "teams",

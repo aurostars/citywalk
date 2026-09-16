@@ -1,4 +1,5 @@
 import { MapPin } from "@phosphor-icons/react";
+import { useRef } from "react";
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { BottomNav } from "./BottomNav";
 import { ThemeToggle } from "./ThemeToggle";
@@ -11,11 +12,17 @@ const navigationItems = [
 ];
 
 export function AppShell() {
+  const mainContentRef = useRef<HTMLElement>(null);
+
   return (
     <div className="app-shell">
-      <a className="skip-link" href="#main-content">
+      <button
+        className="skip-link"
+        onClick={() => mainContentRef.current?.focus()}
+        type="button"
+      >
         跳到主要内容
-      </a>
+      </button>
 
       <header className="site-header">
         <div className="shell-container header-row">
@@ -50,7 +57,7 @@ export function AppShell() {
         </div>
       </header>
 
-      <main id="main-content" tabIndex={-1}>
+      <main id="main-content" ref={mainContentRef} tabIndex={-1}>
         <div className="shell-container">
           <Outlet />
         </div>
