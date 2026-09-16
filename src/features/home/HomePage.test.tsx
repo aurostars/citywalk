@@ -25,7 +25,7 @@ it("renders the home hero from the static image pack", () => {
   renderApp("/");
 
   const hero = screen.getByRole("img", {
-    name: "北京当代艺术街区里结伴散步的大学生",
+    name: "北京中轴线古建筑与远处城市天际线",
   });
   expect(hero).toHaveAttribute(
     "src",
@@ -167,7 +167,7 @@ it("names the activity when an image fails", () => {
   );
 
   const image = screen.getByRole("img", {
-    name: "798 艺术区红砖厂房与正在看展的年轻人",
+    name: "798 艺术区入口的红色数字标识",
   });
   fireEvent.error(image);
 

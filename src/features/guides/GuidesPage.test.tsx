@@ -29,7 +29,7 @@ it("renders an image-led guide list with a clear all-types filter", async () => 
   expect(initialGuides).toHaveLength(defaultAppState.guides.length);
   expect(
     within(initialGuides[0]).getByRole("img", {
-      name: "798 艺术区红砖厂房与正在看展的年轻人",
+      name: "798 艺术区入口的红色数字标识",
     }),
   ).toHaveAttribute(
     "src",
@@ -37,7 +37,7 @@ it("renders an image-led guide list with a clear all-types filter", async () => 
   );
   expect(
     within(initialGuides[0]).getByRole("img", {
-      name: "798 艺术区红砖厂房与正在看展的年轻人",
+      name: "798 艺术区入口的红色数字标识",
     }),
   ).not.toHaveAttribute("src", expect.stringContaining("text_to_image"));
 
