@@ -156,6 +156,17 @@ function isAppState(value: unknown): value is AppState {
   );
 }
 
+function reconcileSeededRecords<T extends { id: string }>(
+  storedRecords: T[],
+  seedRecords: T[],
+): T[] {
+  const storedIds = new Set(storedRecords.map(({ id }) => id));
+  return [
+    ...storedRecords,
+    ...seedRecords.filter(({ id }) => !storedIds.has(id)),
+  ];
+}
+
 export function loadState(storage: Storage): AppState {
   try {
     const storedState = storage.getItem(storageKey);
@@ -164,7 +175,15 @@ export function loadState(storage: Storage): AppState {
     }
 
     const parsedState: unknown = JSON.parse(storedState);
-    return isAppState(parsedState) ? parsedState : defaultAppState;
+    if (!isAppState(parsedState)) {
+      return defaultAppState;
+    }
+
+    return {
+      ...parsedState,
+      teams: reconcileSeededRecords(parsedState.teams, teams),
+      guides: reconcileSeededRecords(parsedState.guides, guides),
+    };
   } catch {
     return defaultAppState;
   }

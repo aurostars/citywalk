@@ -190,9 +190,41 @@ it("restores an any-budget preference", () => {
   );
 });
 
-it("round-trips valid nested teams, check-ins, and guides exactly", () => {
+it("adds new seeded teams and guides to a valid pre-feature snapshot", () => {
+  const preFeatureState: AppState = {
+    ...defaultAppState,
+    teams: defaultAppState.teams.filter(
+      ({ id }) => id !== "team-universal-sunday",
+    ),
+    guides: defaultAppState.guides.filter(
+      ({ id }) => id !== "guide-tianqiao-musical",
+    ),
+  };
+  localStorage.setItem("citywalk:v1", JSON.stringify(preFeatureState));
+
+  const loadedState = loadState(localStorage);
+
+  expect(loadedState.teams.map(({ id }) => id)).toContain(
+    "team-universal-sunday",
+  );
+  expect(loadedState.guides.map(({ id }) => id)).toContain(
+    "guide-tianqiao-musical",
+  );
+});
+
+it("preserves valid nested teams, check-ins, and guides without duplicates", () => {
   expect(saveState(localStorage, nestedState)).toBe(true);
-  expect(loadState(localStorage)).toEqual(nestedState);
+  const loadedState = loadState(localStorage);
+
+  expect(loadedState.teams[0]).toEqual(nestedState.teams[0]);
+  expect(loadedState.guides[0]).toEqual(nestedState.guides[0]);
+  expect(loadedState.checkins).toEqual(nestedState.checkins);
+  expect(new Set(loadedState.teams.map(({ id }) => id)).size).toBe(
+    loadedState.teams.length,
+  );
+  expect(new Set(loadedState.guides.map(({ id }) => id)).size).toBe(
+    loadedState.guides.length,
+  );
 });
 
 it("saves state in the versioned citywalk namespace", () => {
