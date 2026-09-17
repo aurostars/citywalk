@@ -13,7 +13,6 @@ import { activities as allActivities } from "../../data/activities";
 import { weekendRoutes } from "../../data/routes";
 import type {
   Activity,
-  Budget,
   Checkin,
   Guide,
   Preferences,
@@ -21,6 +20,7 @@ import type {
   WeekendRoute,
   WeekendWeather,
 } from "../../types/domain";
+import { matchesBudget } from "../recommendations/budget";
 import { ActivityCard } from "./ActivityCard";
 import { WeatherSummary } from "./WeatherSummary";
 
@@ -34,12 +34,6 @@ interface RecommendationResultsProps {
   teams: Team[];
   weather: WeekendWeather;
 }
-
-const budgetCeilings: Record<Budget, number> = {
-  "100-300": 300,
-  free: 0,
-  "under-100": 100,
-};
 
 function formatDuration(durationMinutes: number) {
   const hours = Math.floor(durationMinutes / 60);
@@ -57,7 +51,7 @@ function findRoute(
     .filter(
       (route) =>
         route.activityIds.includes(activity.id) &&
-        route.totalPrice <= budgetCeilings[preferences.budget] &&
+        matchesBudget(route.totalPrice, preferences.budget) &&
         route.weatherKinds.includes(weather.kind) &&
         route.suitablePartySizes.includes(preferences.partySize),
     )

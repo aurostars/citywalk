@@ -54,6 +54,27 @@ it("disables joining when a fixture team is full", () => {
   expect(within(fullTeam).getByText("3 / 3 人")).toBeVisible();
 });
 
+it("renders the premium entertainment team from its shared fixture", () => {
+  renderApp("/teams");
+
+  const team = screen.getByRole("article", {
+    name: "北京环球度假区一日游组队",
+  });
+  expect(
+    within(team).getByRole("img", {
+      name: "北京环球度假区过山车与主题园区",
+    }),
+  ).toHaveAttribute(
+    "src",
+    expect.stringMatching(
+      /\/images\/activities\/universal-beijing-day\.webp$/,
+    ),
+  );
+  expect(within(team).getByText("9月20日 09:30")).toBeVisible();
+  expect(within(team).getByText("环球度假区地铁站 B 口")).toBeVisible();
+  expect(within(team).getByText("3 / 5 人")).toBeVisible();
+});
+
 it("preselects the activity supplied by the detail page query", async () => {
   const user = userEvent.setup();
   renderApp("/teams?activity=798-art-weekend");

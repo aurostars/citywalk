@@ -110,6 +110,48 @@ test("fresh onboarding generates and restores a weekend plan", async ({
   await expect(page.getByLabel("当前偏好")).toContainText("100 元内");
 });
 
+test("premium entertainment preference generates the Universal plan", async ({
+  page,
+}) => {
+  await page.getByRole("checkbox", { name: "去玩乐" }).check();
+  await page.getByRole("radio", { name: "300 元以上" }).check();
+  await page.getByRole("button", { name: "生成周末计划" }).click();
+
+  await expect(
+    page.getByRole("heading", { name: "北京环球度假区一日游" }),
+  ).toBeVisible();
+  await expect(page.getByLabel("当前偏好")).toContainText("玩乐");
+  await expect(page.getByLabel("当前偏好")).toContainText("300 元以上");
+});
+
+test("unlimited show recommendations decode static images without generation requests", async ({
+  page,
+}) => {
+  const generationRequests: string[] = [];
+  page.on("request", (request) => {
+    if (request.url().includes("/api/ide/v1/text_to_image")) {
+      generationRequests.push(request.url());
+    }
+  });
+
+  await page.getByRole("checkbox", { name: "看演出" }).check();
+  await page.getByRole("radio", { name: "不限" }).check();
+  await page.getByRole("button", { name: "生成周末计划" }).click();
+  await expect(
+    page.getByRole("heading", { name: "为你安排的北京周末" }),
+  ).toBeVisible();
+
+  const recommendationImages = page.locator(
+    ".lead-activity-image, .activity-card-image",
+  );
+  expect(await recommendationImages.count()).toBeGreaterThan(0);
+  for (const image of await recommendationImages.all()) {
+    await image.evaluate((element) => (element as HTMLImageElement).decode());
+    await expect(image).toHaveJSProperty("complete", true);
+  }
+  expect(generationRequests).toEqual([]);
+});
+
 test("saved preferences can be edited and replace the current plan", async ({
   page,
 }) => {
@@ -327,29 +369,61 @@ test("mobile navigation reaches every primary section", async ({ page }) => {
 test("small-phone onboarding keeps compact validation and action in the first viewport", async ({
   page,
 }) => {
-  await page.setViewportSize({ width: 375, height: 667 });
+  await page.setViewportSize({ width: 390, height: 844 });
   await page.reload({ waitUntil: "domcontentloaded" });
 
+  const activityChoices = ["看展", "逛市集", "看演出", "去徒步", "去玩乐"];
+  const budgetChoices = [
+    "免费",
+    "100 元内",
+    "100-300 元",
+    "300 元以上",
+    "不限",
+  ];
   const validation = page.getByText("请选择活动类型和预算后继续。");
-  await expect(validation).toBeVisible();
-  await page.getByRole("checkbox", { name: "看展" }).check();
-  await page.getByRole("radio", { name: "100 元内" }).check();
+  const submit = page.getByRole("button", { name: "生成周末计划" });
 
-  const positions = await page.evaluate(() => {
-    const action = document.querySelector(".preference-action");
+  for (const name of activityChoices) {
+    await expect(page.getByRole("checkbox", { name })).toBeVisible();
+  }
+  for (const name of budgetChoices) {
+    await expect(page.getByRole("radio", { name })).toBeVisible();
+  }
+  await expect(validation).toBeVisible();
+  await expect(submit).toBeVisible();
+
+  const positions = await page.evaluate(({ activityChoices, budgetChoices }) => {
     const navigation = document.querySelector(".bottom-nav");
-    if (!action || !navigation) {
+    const labels = Array.from(
+      document.querySelectorAll<HTMLLabelElement>(".preference-panel label"),
+    );
+    const validation = document.querySelector(".validation-message");
+    const submit = document.querySelector<HTMLButtonElement>(
+      ".preference-action button",
+    );
+    if (!navigation || !validation || !submit) {
       return null;
     }
+
+    const expectedNames = [...activityChoices, ...budgetChoices];
+    const controls = labels.filter((label) =>
+      expectedNames.includes(label.textContent?.trim() ?? ""),
+    );
+    const navigationTop = navigation.getBoundingClientRect().top;
+
     return {
-      actionBottom: action.getBoundingClientRect().bottom,
-      navigationTop: navigation.getBoundingClientRect().top,
+      controlCount: controls.length,
+      outOfViewport: [...controls, validation, submit].flatMap((element) => {
+        const bounds = element.getBoundingClientRect();
+        return bounds.top >= 0 && bounds.bottom <= navigationTop
+          ? []
+          : [element.textContent?.trim() ?? element.tagName];
+      }),
     };
-  });
+  }, { activityChoices, budgetChoices });
   expect(positions).not.toBeNull();
-  expect(positions?.actionBottom).toBeLessThanOrEqual(
-    positions?.navigationTop ?? 0,
-  );
+  expect(positions?.controlCount).toBe(10);
+  expect(positions?.outOfViewport).toEqual([]);
 });
 
 test("mobile results reveal a material portion of lead media above navigation", async ({

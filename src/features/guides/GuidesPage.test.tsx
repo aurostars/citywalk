@@ -24,6 +24,9 @@ it("renders an image-led guide list with a clear all-types filter", async () => 
   });
   const allFilter = within(filters).getByRole("button", { name: "全部" });
   expect(allFilter).toHaveAttribute("aria-pressed", "true");
+  expect(
+    within(filters).getByRole("button", { name: "玩乐" }),
+  ).toBeVisible();
 
   const initialGuides = screen.getAllByRole("article");
   expect(initialGuides).toHaveLength(defaultAppState.guides.length);
@@ -47,6 +50,14 @@ it("renders an image-led guide list with a clear all-types filter", async () => 
   expect(screen.getAllByRole("article")).toHaveLength(1);
   expect(screen.getByText("潘家园早市的三个停留点")).toBeVisible();
   expect(allFilter).toHaveAttribute("aria-pressed", "false");
+
+  await user.click(
+    within(filters).getByRole("button", { name: "演出" }),
+  );
+  expect(screen.getAllByRole("article")).toHaveLength(2);
+  expect(
+    screen.getByText("天桥音乐剧之夜的转场与返程"),
+  ).toBeVisible();
 
   await user.click(allFilter);
   expect(screen.getAllByRole("article")).toHaveLength(

@@ -193,6 +193,36 @@ it("uses ascending editor order to break score ties", () => {
   expect(result.map(({ id }) => id)).toEqual(["first", "second"]);
 });
 
+it("keeps free and 528 yuan activities before sorting an unlimited budget", () => {
+  const result = recommendActivities(
+    [
+      makeActivity({
+        id: "free-weather-mismatch",
+        editorOrder: 1,
+        price: 0,
+        weatherKinds: ["sunny"],
+      }),
+      makeActivity({
+        id: "premium-weather-match",
+        editorOrder: 99,
+        price: 528,
+        weatherKinds: ["rain"],
+      }),
+    ],
+    {
+      activityTypes: ["exhibition"],
+      budget: "any",
+      partySize: "pair",
+    },
+    rainyWeekend,
+  );
+
+  expect(result.map(({ id, price }) => ({ id, price }))).toEqual([
+    { id: "premium-weather-match", price: 528 },
+    { id: "free-weather-mismatch", price: 0 },
+  ]);
+});
+
 it("does not mutate the supplied activity order", () => {
   const input = [
     makeActivity({ id: "second", editorOrder: 2 }),

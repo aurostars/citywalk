@@ -42,11 +42,47 @@ it("requires an activity type and budget before generating", async () => {
   renderApp("/");
   const submit = screen.getByRole("button", { name: "生成周末计划" });
 
+  expect(screen.getByRole("checkbox", { name: "去玩乐" })).toBeVisible();
+  expect(screen.getByRole("radio", { name: "300 元以上" })).toBeVisible();
+  expect(screen.getByRole("radio", { name: "不限" })).toBeVisible();
   expect(submit).toBeDisabled();
   await user.click(screen.getByRole("checkbox", { name: "看展" }));
   expect(submit).toBeDisabled();
   await user.click(screen.getByRole("radio", { name: "100 元内" }));
   expect(submit).toBeEnabled();
+});
+
+it("generates a premium entertainment plan", async () => {
+  const user = userEvent.setup();
+  renderApp("/");
+
+  await user.click(screen.getByRole("checkbox", { name: "去玩乐" }));
+  await user.click(screen.getByRole("radio", { name: "300 元以上" }));
+  await user.click(screen.getByRole("button", { name: "生成周末计划" }));
+
+  expect(
+    await screen.findByRole("heading", {
+      name: "北京环球度假区一日游",
+    }),
+  ).toBeVisible();
+  expect(screen.getByLabelText("当前偏好")).toHaveTextContent("玩乐");
+  expect(screen.getByLabelText("当前偏好")).toHaveTextContent("300 元以上");
+});
+
+it("selects the premium west-city route for a cloudy show plan", () => {
+  renderApp(
+    "/",
+    completedState({
+      activityTypes: ["show"],
+      budget: "above-300",
+      partySize: "pair",
+    }),
+  );
+
+  expect(
+    screen.getByRole("heading", { name: "西城舞台艺术日" }),
+  ).toBeVisible();
+  expect(screen.getByText("660 元")).toBeVisible();
 });
 
 it("reveals recommendations and supports editing saved preferences", async () => {

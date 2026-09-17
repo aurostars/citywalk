@@ -14,12 +14,15 @@ const activityOptions: {
   { label: "逛市集", value: "market" },
   { label: "看演出", value: "show" },
   { label: "去徒步", value: "hike" },
+  { label: "去玩乐", value: "entertainment" },
 ];
 
 const budgetOptions: { label: string; value: Budget }[] = [
   { label: "免费", value: "free" },
   { label: "100 元内", value: "under-100" },
   { label: "100-300 元", value: "100-300" },
+  { label: "300 元以上", value: "above-300" },
+  { label: "不限", value: "any" },
 ];
 
 interface PreferencePanelProps {
@@ -82,7 +85,7 @@ export function PreferencePanel({
       <fieldset aria-describedby="budget-help">
         <legend>预算范围</legend>
         <p className="field-help" id="budget-help">
-          选择每人的活动花费上限
+          选择每人的活动花费范围
         </p>
         <div className="selection-row">
           {budgetOptions.map((option) => (
@@ -123,6 +126,7 @@ export const activityTypeLabels: Record<
   Preferences["activityTypes"][number],
   string
 > = {
+  entertainment: "玩乐",
   exhibition: "看展",
   hike: "徒步",
   market: "市集",
@@ -131,6 +135,8 @@ export const activityTypeLabels: Record<
 
 export const budgetLabels: Record<Budget, string> = {
   "100-300": "100-300 元",
+  "above-300": "300 元以上",
+  any: "不限",
   free: "免费",
   "under-100": "100 元内",
 };

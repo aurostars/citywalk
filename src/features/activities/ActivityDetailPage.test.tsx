@@ -73,6 +73,30 @@ it("links the activity into team and check-in planning", () => {
   );
 });
 
+it("renders premium entertainment facts from the shared fixture", () => {
+  renderApp("/activity/universal-beijing-day");
+
+  expect(
+    screen.getByRole("heading", { name: "北京环球度假区一日游" }),
+  ).toBeVisible();
+  expect(
+    screen.getByRole("img", {
+      name: "北京环球度假区过山车与主题园区",
+    }),
+  ).toHaveAttribute(
+    "src",
+    expect.stringMatching(
+      /\/images\/activities\/universal-beijing-day\.webp$/,
+    ),
+  );
+  expect(screen.getByText("通州区 / 玩乐")).toBeVisible();
+  expect(
+    within(screen.getByRole("region", { name: "活动信息" })).getByText(
+      "528 元",
+    ),
+  ).toBeVisible();
+});
+
 it("keeps a favorite in session and shows the shell warning when storage fails", async () => {
   const user = userEvent.setup();
   const setItem = vi

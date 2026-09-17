@@ -18,6 +18,7 @@ const activityById = new Map(
 );
 
 const activityTypeLabels: Record<ActivityType, string> = {
+  entertainment: "玩乐",
   exhibition: "展览",
   market: "市集",
   show: "演出",
@@ -30,6 +31,7 @@ const guideFilters: Array<{ label: string; value: GuideFilter }> = [
   { label: "市集", value: "market" },
   { label: "演出", value: "show" },
   { label: "户外", value: "hike" },
+  { label: "玩乐", value: "entertainment" },
 ];
 
 interface GuideRowProps {

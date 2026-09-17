@@ -31,6 +31,7 @@ const allActivityTypes: ActivityType[] = [
   "market",
   "show",
   "hike",
+  "entertainment",
 ];
 
 const partySizeOptions: { label: string; value: PartySize }[] = [
