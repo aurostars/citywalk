@@ -41,4 +41,14 @@ export const teams: Team[] = [
     memberCount: 3,
     note: "骑行约两小时，新手也可以跟上，需自行准备车辆。",
   },
+  {
+    id: "team-universal-sunday",
+    activityId: "universal-beijing-day",
+    leader: "方晴",
+    departureTime: "2026-09-20T09:30",
+    meetingPoint: "环球度假区地铁站 B 口",
+    capacity: 5,
+    memberCount: 3,
+    note: "集合后一起入园，按体力分段体验项目，中途安排午餐和休息。",
+  },
 ];

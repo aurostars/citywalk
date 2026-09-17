@@ -37,4 +37,13 @@ export const guides: Guide[] = [
     audience: "想用半天完成轻量登高的人",
     author: "顾川",
   },
+  {
+    id: "guide-tianqiao-musical",
+    title: "天桥音乐剧之夜的转场与返程",
+    activityId: "tianqiao-musical-night",
+    activityType: "show",
+    summary: "提前四十分钟到场，从下午行程转场时预留晚餐时间，并在入场前确认散场后的公共交通安排。",
+    audience: "想把音乐剧排进完整周日行程的人",
+    author: "周末编辑部",
+  },
 ];

@@ -48,4 +48,18 @@ export const weekendRoutes: WeekendRoute[] = [
     suitablePartySizes: ["pair", "group"],
     editorOrder: 4,
   },
+  {
+    id: "west-city-stage-day",
+    title: "西城舞台艺术日",
+    activityIds: [
+      "ncpa-weekend-concert",
+      "tianqiao-musical-night",
+    ],
+    summary: "下午在国家大剧院听音乐会，晚间转到天桥艺术中心继续看一场音乐剧。",
+    totalPrice: 660,
+    durationMinutes: 540,
+    weatherKinds: ["cloudy", "rain"],
+    suitablePartySizes: ["solo", "pair"],
+    editorOrder: 5,
+  },
 ];

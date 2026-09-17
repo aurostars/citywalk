@@ -5,6 +5,11 @@ Each source was cropped to 4:3, resized to 1600x1200, color-preserved, and
 converted to WebP for this project. Citywalk does not imply endorsement by the
 creators.
 
+The four premium activity derivatives were auto-oriented, attention-cropped to
+4:3, resized to 1600x1200, and converted to WebP at quality 78 and effort 6.
+This changes their framing, dimensions, and file format; the indoor ski source
+was also upscaled from 640x480.
+
 | Asset | Original file | Creator | License |
 | --- | --- | --- | --- |
 | `hero/beijing-weekend.webp` | [File page](https://commons.wikimedia.org/wiki/File:Students_of_Beijing_Hospitality_Institute_walking_from_classroom_to_dormitory_(20230303125247).jpg) · [Original](https://upload.wikimedia.org/wikipedia/commons/5/5d/Students_of_Beijing_Hospitality_Institute_walking_from_classroom_to_dormitory_%2820230303125247%29.jpg) | N509FZ | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0) |
@@ -16,6 +21,10 @@ creators.
 | `activities/shougang-industrial-exhibition.webp` | [File page](https://commons.wikimedia.org/wiki/File:No._3_Blast_Furnace_of_Shougang_Park_(20240916133522).jpg) · [Original](https://upload.wikimedia.org/wikipedia/commons/e/e6/No._3_Blast_Furnace_of_Shougang_Park_%2820240916133522%29.jpg) | N509FZ | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0) |
 | `activities/xiangshan-morning-hike.webp` | [File page](https://commons.wikimedia.org/wiki/File:Xiangshan_(Fragrant_Hills)_Park_(43745555980).jpg) · [Original](https://upload.wikimedia.org/wikipedia/commons/f/fe/Xiangshan_%28Fragrant_Hills%29_Park_%2843745555980%29.jpg) | Ludger Heide | [CC BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0) |
 | `activities/wenyu-river-cycling.webp` | [File page](https://commons.wikimedia.org/wiki/File:Beijing_Changping_IMG_6002_Wenyu-Nansha_River_-_Shahe_Reservoir.jpg) · [Original](https://upload.wikimedia.org/wikipedia/commons/1/1e/Beijing_Changping_IMG_6002_Wenyu-Nansha_River_-_Shahe_Reservoir.jpg) | Bjoertvedt | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0) |
+| `activities/universal-beijing-day.webp` | [File page](https://commons.wikimedia.org/wiki/File:Universal_Beijing_Resort_3.jpg) · [Original](https://upload.wikimedia.org/wikipedia/commons/3/34/Universal_Beijing_Resort_3.jpg) | Hhhh2 | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0) |
+| `activities/tianqiao-musical-night.webp` | [File page](https://commons.wikimedia.org/wiki/File:Auditorium_of_Beijing_Tianqiao_Performing_Arts_Center_%2820200115191246%29.jpg) · [Original](https://upload.wikimedia.org/wikipedia/commons/3/3d/Auditorium_of_Beijing_Tianqiao_Performing_Arts_Center_%2820200115191246%29.jpg) | N509FZ | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0) |
+| `activities/indoor-ski-weekend.webp` | [File page](https://commons.wikimedia.org/wiki/File:Ski_slopes_inside_X-Scape_-_geograph.org.uk_-_2950264.jpg) · [Original](https://upload.wikimedia.org/wikipedia/commons/c/c2/Ski_slopes_inside_X-Scape_-_geograph.org.uk_-_2950264.jpg) | John Firth | [CC BY-SA 2.0](https://creativecommons.org/licenses/by-sa/2.0) |
+| `activities/immersive-theatre-weekend.webp` | [File page](https://commons.wikimedia.org/wiki/File:Captured,_immersive_installation_by_Hanna_Haaslahti,_2021.jpg) · [Original](https://upload.wikimedia.org/wikipedia/commons/1/17/Captured%2C_immersive_installation_by_Hanna_Haaslahti%2C_2021.jpg) | Tomumaja | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0) |
 
 For the CC BY-SA derivatives, redistribution follows the same license version
 listed above. The source files remain available from the exact file and

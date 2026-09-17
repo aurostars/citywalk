@@ -20,6 +20,10 @@ const expectedAssets = [
   "images/activities/shougang-industrial-exhibition.webp",
   "images/activities/xiangshan-morning-hike.webp",
   "images/activities/wenyu-river-cycling.webp",
+  "images/activities/universal-beijing-day.webp",
+  "images/activities/tianqiao-musical-night.webp",
+  "images/activities/indoor-ski-weekend.webp",
+  "images/activities/immersive-theatre-weekend.webp",
 ] as const;
 
 const hashes: string[] = [];
@@ -46,7 +50,7 @@ describe("static city image assets", () => {
     hashes.push(hash);
   });
 
-  it("contains nine unique images", () => {
+  it("contains thirteen unique images", () => {
     expect(new Set(hashes).size).toBe(expectedAssets.length);
   });
 });

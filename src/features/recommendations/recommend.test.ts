@@ -213,8 +213,9 @@ it("does not mutate the supplied activity order", () => {
 });
 
 it("covers all required fixture dimensions", () => {
-  expect(activities).toHaveLength(8);
+  expect(activities).toHaveLength(12);
   expect([...new Set(activities.map(({ type }) => type))].sort()).toEqual([
+    "entertainment",
     "exhibition",
     "hike",
     "market",
@@ -241,6 +242,30 @@ it("covers all required fixture dimensions", () => {
   expect(activities.some(({ price }) => price > 100 && price <= 300)).toBe(
     true,
   );
+});
+
+it("includes the approved premium weekend activities", () => {
+  expect(
+    activities
+      .filter(({ id }) =>
+        [
+          "universal-beijing-day",
+          "tianqiao-musical-night",
+          "indoor-ski-weekend",
+          "immersive-theatre-weekend",
+        ].includes(id),
+      )
+      .map(({ id, price, type }) => ({ id, price, type })),
+  ).toEqual([
+    { id: "universal-beijing-day", price: 528, type: "entertainment" },
+    { id: "tianqiao-musical-night", price: 480, type: "show" },
+    { id: "indoor-ski-weekend", price: 420, type: "entertainment" },
+    {
+      id: "immersive-theatre-weekend",
+      price: 380,
+      type: "entertainment",
+    },
+  ]);
 });
 
 it("covers the required Beijing venues with static editorial images", () => {
@@ -284,6 +309,23 @@ it("keeps related fixtures connected to known activities", () => {
   expect(guides.every(({ activityId }) => activityIds.has(activityId))).toBe(
     true,
   );
+
+  expect(
+    weekendRoutes.find(({ id }) => id === "west-city-stage-day"),
+  ).toMatchObject({
+    activityIds: ["ncpa-weekend-concert", "tianqiao-musical-night"],
+    totalPrice: 660,
+  });
+  expect(
+    teams.find(({ id }) => id === "team-universal-sunday"),
+  ).toMatchObject({
+    activityId: "universal-beijing-day",
+  });
+  expect(
+    guides.find(({ id }) => id === "guide-tianqiao-musical"),
+  ).toMatchObject({
+    activityId: "tianqiao-musical-night",
+  });
 });
 
 it("keeps every one-day route on a common weekday in stated order", () => {
