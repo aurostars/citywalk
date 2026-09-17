@@ -1,19 +1,9 @@
 import type {
   Activity,
-  Budget,
   Preferences,
   WeekendWeather,
 } from "../../types/domain";
-
-const budgetCeilings: Record<Budget, number> = {
-  free: 0,
-  "under-100": 100,
-  "100-300": 300,
-};
-
-function isWithinBudget(price: number, budget: Budget): boolean {
-  return price <= budgetCeilings[budget];
-}
+import { matchesBudget } from "./budget";
 
 export function recommendActivities(
   activities: Activity[],
@@ -21,7 +11,7 @@ export function recommendActivities(
   weather: WeekendWeather,
 ): Activity[] {
   return activities
-    .filter((activity) => isWithinBudget(activity.price, preferences.budget))
+    .filter((activity) => matchesBudget(activity.price, preferences.budget))
     .map((activity) => ({
       activity,
       score:

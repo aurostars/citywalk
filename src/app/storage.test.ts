@@ -156,6 +156,40 @@ it("restores completed onboarding and preferences", () => {
   );
 });
 
+it("restores entertainment and above-300 preferences", () => {
+  const premiumState: AppState = {
+    ...completedState,
+    preferences: {
+      activityTypes: ["entertainment"],
+      budget: "above-300",
+      partySize: "pair",
+    },
+  };
+
+  saveState(localStorage, premiumState);
+
+  expect(loadState(localStorage).preferences).toEqual(
+    premiumState.preferences,
+  );
+});
+
+it("restores an any-budget preference", () => {
+  const anyBudgetState: AppState = {
+    ...completedState,
+    preferences: {
+      activityTypes: ["exhibition"],
+      budget: "any",
+      partySize: "pair",
+    },
+  };
+
+  saveState(localStorage, anyBudgetState);
+
+  expect(loadState(localStorage).preferences).toEqual(
+    anyBudgetState.preferences,
+  );
+});
+
 it("round-trips valid nested teams, check-ins, and guides exactly", () => {
   expect(saveState(localStorage, nestedState)).toBe(true);
   expect(loadState(localStorage)).toEqual(nestedState);

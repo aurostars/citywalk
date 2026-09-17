@@ -9,8 +9,20 @@ import type {
 
 const storageKey = "citywalk:v1";
 
-const activityTypes = new Set(["exhibition", "market", "show", "hike"]);
-const budgets = new Set(["free", "under-100", "100-300"]);
+const activityTypes = new Set([
+  "exhibition",
+  "market",
+  "show",
+  "hike",
+  "entertainment",
+]);
+const budgets = new Set([
+  "free",
+  "under-100",
+  "100-300",
+  "above-300",
+  "any",
+]);
 const partySizes = new Set(["solo", "pair", "group"]);
 const themes = new Set(["system", "light", "dark"]);
 

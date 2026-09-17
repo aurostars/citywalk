@@ -119,11 +119,13 @@ it.each<{
 }>([
   { budget: "free", expectedIds: ["free"] },
   { budget: "under-100", expectedIds: ["free", "at-limit"] },
+  { budget: "100-300", expectedIds: ["upper-limit"] },
+  { budget: "above-300", expectedIds: ["over-limit"] },
   {
-    budget: "100-300",
-    expectedIds: ["free", "at-limit", "upper-limit"],
+    budget: "any",
+    expectedIds: ["free", "at-limit", "upper-limit", "over-limit"],
   },
-])("enforces the $budget budget ceiling", ({ budget, expectedIds }) => {
+])("applies the $budget budget policy", ({ budget, expectedIds }) => {
   const budgetFixtures = [
     makeActivity({ id: "free", price: 0, editorOrder: 1 }),
     makeActivity({ id: "at-limit", price: 100, editorOrder: 2 }),

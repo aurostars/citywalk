@@ -1,5 +1,15 @@
-export type ActivityType = "exhibition" | "market" | "show" | "hike";
-export type Budget = "free" | "under-100" | "100-300";
+export type ActivityType =
+  | "exhibition"
+  | "market"
+  | "show"
+  | "hike"
+  | "entertainment";
+export type Budget =
+  | "free"
+  | "under-100"
+  | "100-300"
+  | "above-300"
+  | "any";
 export type PartySize = "solo" | "pair" | "group";
 export type WeatherKind = "sunny" | "cloudy" | "rain";
 export type WeekendDay = "saturday" | "sunday";
